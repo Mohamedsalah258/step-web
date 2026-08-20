@@ -1,0 +1,69 @@
+import { NavLink, useLocation } from 'react-router-dom'
+import { GraduationCap } from 'lucide-react'
+import { NAV_ITEMS } from '@/lib/nav'
+import { BRAND } from '@/data/admin'
+import { cn } from '@/lib/cn'
+
+/** فيجما node 7:199 — sidebar 260px، bg #0b1f66، px16 py28 gap32 */
+export function Sidebar() {
+  const { pathname } = useLocation()
+
+  const isActive = (to: string, match?: string[]) => {
+    if (to === '/') return pathname === '/'
+    if (match?.some((m) => pathname.startsWith(m))) return true
+    return pathname.startsWith(to)
+  }
+
+  return (
+    <aside className="flex w-sidebar shrink-0 flex-col gap-8 bg-navy px-4 py-7">
+      {/* brand-header — node 7:200: اللوجو يمين والنص شماله */}
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-logo bg-brand">
+          <GraduationCap className="size-6 text-white" strokeWidth={2} />
+        </div>
+        <div className="flex flex-col items-start gap-0.5 whitespace-nowrap">
+          <p className="text-2xl font-extrabold leading-none text-white">
+            {BRAND.name}
+          </p>
+          <p className="text-2xs font-medium leading-none text-brand-tint opacity-60">
+            {BRAND.tagline}
+          </p>
+        </div>
+      </div>
+
+      {/* nav-list — node 7:207: الأيقونة يمين والعنوان شمالها متراصّ لليمين */}
+      <nav className="flex flex-col gap-1">
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item.to, item.match)
+          const Icon = item.icon
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={cn(
+                'flex items-center gap-3 rounded-ctl px-4 py-2.5 transition-colors',
+                active ? 'bg-brand' : 'hover:bg-white/[0.07]',
+              )}
+            >
+              <Icon
+                className={cn(
+                  'size-[18px] shrink-0 text-white',
+                  !active && 'opacity-70',
+                )}
+                strokeWidth={2}
+              />
+              <span
+                className={cn(
+                  'min-w-0 flex-1 text-right text-base leading-normal text-white',
+                  active ? 'font-bold' : 'font-medium opacity-70',
+                )}
+              >
+                {item.label}
+              </span>
+            </NavLink>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}

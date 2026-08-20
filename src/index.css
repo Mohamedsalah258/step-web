@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*
+   * .num — للمحتوى اللاتيني/الرقمي الصافي بس (تواريخ، أكواد، أحجام، أرقام هواتف،
+   * إيميلات). بيجبر الاتجاه LTR عشان ما يتبعترش جوه نص عربي.
+   */
+  .num {
+    @apply font-mono;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /*
+   * .mono — نفس خط الأرقام (Spline Sans Mono) بس **بدون** فرض اتجاه.
+   * استخدمها للنصوص المخلوطة عربي + رقم (زي «234 طالب» أو «350 ج.م»)
+   * عشان خوارزمية الـ bidi تسيبها تقرأ صح من اليمين.
+   */
+  .mono {
+    @apply font-mono;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-line;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted/40;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand/40 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-line/70;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
