@@ -1,12 +1,16 @@
+import { useEffect, useState } from 'react'
 import { ChevronRight, Eye, RotateCcw, ShieldAlert, X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button, ButtonLink, IconButton } from '@/components/ui/Button'
 import { Badge, StatusBadge } from '@/components/ui/Badge'
 import { DataTable, RowActions, Truncate, type Column } from '@/components/ui/Table'
+import { Modal, ModalButton, ModalNotice } from '@/components/ui/Modal'
 import { ProgressBar } from '@/components/ui/Misc'
 import { cn } from '@/lib/cn'
+import { useBodyScrollLock } from '@/lib/useBodyScrollLock'
 import {
+  DEVICE_RESET_MODAL,
   STUDENT_DETAIL,
   STUDENT_DRAWER,
   STUDENT_RESET_LOG,
@@ -96,10 +100,15 @@ export function studentColumns(
     {
       key: 'name',
       header: 'الاسم',
-      width: 180,
+      flex: true,
       render: (r) => (
         <Truncate>
-          <span className="font-semibold text-ink">{r.name}</span>
+          <Link
+            to={`/students/${r.id}`}
+            className="font-semibold text-ink underline decoration-transparent transition-colors hover:text-brand hover:decoration-brand"
+          >
+            {r.name}
+          </Link>
         </Truncate>
       ),
     },
@@ -156,80 +165,145 @@ export function studentColumns(
 /* الدروار — فيجما node 7:921 (لوح 400px على الحافة اليسرى)                    */
 /* ========================================================================== */
 
+/**
+ * محتوى مودال ريست الجهاز — مشترك بين:
+ * - `DeviceResetModal.tsx` (route كامل جوّه صفحة تفاصيل الطالب)
+ * - الـ quick-view drawer هنا (بيفتح كـ state محلي من غير أي navigation)
+ * فيجما frame: v3-student-device-reset-modal (node 35:7348 → overlay 35:7573)
+ */
+export function DeviceResetModalContent({
+  onClose,
+}: { onClose?: () => void } = {}) {
+  const m = DEVICE_RESET_MODAL
+  return (
+    <Modal
+      title={m.title}
+      width={480}
+      onClose={onClose}
+      actions={
+        <>
+          <ModalButton variant="cancel" onClick={onClose}>
+            {m.cancel}
+          </ModalButton>
+          <ModalButton tone="danger" onClick={onClose}>
+            {m.confirm}
+          </ModalButton>
+        </>
+      }
+    >
+      <p className="text-right text-base leading-relaxed text-muted">
+        {m.body}
+      </p>
+      <SpecPlate rows={[...m.specs]} />
+      <ModalNotice tone="warning">
+        <span className="mb-2 block text-base font-extrabold">
+          {m.noticeTitle}
+        </span>
+        {m.noticeBody}
+      </ModalNotice>
+    </Modal>
+  )
+}
+
 export function StudentDrawer({ onClose }: { onClose: () => void }) {
   const d = STUDENT_DRAWER
+  const [resetOpen, setResetOpen] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  // منع سكرول الصفحة اللي وراها لما الدرج يكون مفتوح
+  useBodyScrollLock(true)
+
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-[400px] max-w-full flex-col gap-6 overflow-y-auto border-r border-line bg-white p-6 shadow-[8px_0_12px_rgba(0,0,0,0.1)]">
-      {/* drawer-header — RTL: العنوان يمين وزرار الإغلاق شمال */}
-      <div className="flex w-full shrink-0 items-center justify-between">
-        <p className="whitespace-nowrap text-lg font-extrabold text-ink">
-          {d.title}
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="إغلاق"
-          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface text-ink transition-colors hover:bg-line"
-        >
-          <X className="size-3.5" strokeWidth={2.5} />
-        </button>
-      </div>
-
-      {/* section-student-info — node 7:928 */}
-      <DrawerSection title={d.studentSectionTitle}>
-        <SpecPlate rows={d.student} className="gap-2 p-3" />
-      </DrawerSection>
-
-      {/* section-subscriptions — node 7:940 */}
-      <DrawerSection title={d.subscriptionsTitle}>
-        {d.subscriptions.map((s) => (
-          <div
-            key={s.course}
-            className="flex w-full shrink-0 flex-col gap-2 rounded-ctl border border-line p-2.5"
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-navy/40 animate-fade-in"
+        onClick={onClose}
+        role="presentation"
+      />
+      <aside className="absolute bottom-0 left-0 top-0 flex w-full max-w-full flex-col gap-6 overflow-y-auto border-r border-line bg-white p-6 shadow-modal md:w-[400px]">
+        {/* drawer-header — RTL: العنوان يمين وزرار الإغلاق شمال */}
+        <div className="flex w-full shrink-0 items-center justify-between">
+          <p className="whitespace-nowrap text-lg font-extrabold text-ink">
+            {d.title}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface text-ink transition-colors hover:bg-line"
           >
-            {/* RTL: اسم الكورس يمين والبادج شمال */}
-            <div className="flex w-full items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-sm font-bold text-ink">
-                {s.course}
-              </span>
-              <StatusBadge status={s.status} />
+            <X className="size-3.5" strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* section-student-info — node 7:928 */}
+        <DrawerSection title={d.studentSectionTitle}>
+          <SpecPlate rows={d.student} className="gap-2 p-3" />
+        </DrawerSection>
+
+        {/* section-subscriptions — node 7:940 */}
+        <DrawerSection title={d.subscriptionsTitle}>
+          {d.subscriptions.map((s) => (
+            <div
+              key={s.course}
+              className="flex w-full shrink-0 flex-col gap-2 rounded-ctl border border-line p-2.5"
+            >
+              {/* RTL: اسم الكورس يمين والبادج شمال */}
+              <div className="flex w-full items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-sm font-bold text-ink">
+                  {s.course}
+                </span>
+                <StatusBadge status={s.status} />
+              </div>
+              <p className="text-2xs text-muted">
+                {s.startLabel} <span className="num">{s.startDate}</span>
+              </p>
             </div>
-            <p className="text-2xs text-muted">
-              {s.startLabel} <span className="num">{s.startDate}</span>
-            </p>
-          </div>
-        ))}
-      </DrawerSection>
+          ))}
+        </DrawerSection>
 
-      {/* section-device-data — node 7:952 */}
-      <DrawerSection title={d.deviceSectionTitle}>
-        <SpecPlate rows={d.device} className="gap-2 p-3" />
-      </DrawerSection>
+        {/* section-device-data — node 7:952 */}
+        <DrawerSection title={d.deviceSectionTitle}>
+          <SpecPlate rows={d.device} className="gap-2 p-3" />
+        </DrawerSection>
 
-      {/* reset-status-card — node 7:961 */}
-      <div className="flex w-full shrink-0 flex-col gap-3 rounded-ctl bg-brand-wash p-3">
-        {d.resetCard.map((r) => (
-          <SpecRow key={r.label} row={r} />
-        ))}
-        <ButtonLink
-          to={`/students/${STUDENT_DETAIL.id}/device-reset`}
-          icon={RotateCcw}
-          full
-        >
-          {d.resetButton}
-        </ButtonLink>
-      </div>
+        {/* reset-status-card — node 7:961 */}
+        <div className="flex w-full shrink-0 flex-col gap-3 rounded-ctl bg-brand-wash p-3">
+          {d.resetCard.map((r) => (
+            <SpecRow key={r.label} row={r} />
+          ))}
+          <Button
+            icon={RotateCcw}
+            full
+            onClick={() => setResetOpen(true)}
+          >
+            {d.resetButton}
+          </Button>
+        </div>
 
-      {/* warning-banner — node 7:973 */}
-      <div className="flex w-full shrink-0 flex-col gap-3 rounded-ctl bg-danger-bg p-3">
-        <p className="text-right text-sm font-semibold leading-relaxed text-danger">
-          {d.warning}
-        </p>
-        <Button variant="danger" icon={ShieldAlert} full>
-          {d.banButton}
-        </Button>
-      </div>
-    </aside>
+        {/* warning-banner — node 7:973 */}
+        <div className="flex w-full shrink-0 flex-col gap-3 rounded-ctl bg-danger-bg p-3">
+          <p className="text-right text-sm font-semibold leading-relaxed text-danger">
+            {d.warning}
+          </p>
+          <Button variant="danger" icon={ShieldAlert} full>
+            {d.banButton}
+          </Button>
+        </div>
+      </aside>
+
+      {/* ريست الجهاز بيفتح فوق نفس الشاشة الحالية من غير أي navigation */}
+      {resetOpen ? (
+        <DeviceResetModalContent onClose={() => setResetOpen(false)} />
+      ) : null}
+    </div>
   )
 }
 
@@ -258,7 +332,7 @@ function DrawerSection({
 export function StudentProfileCard({ onBan }: { onBan: () => void }) {
   const s = STUDENT_DETAIL
   return (
-    <Card className="flex w-full shrink-0 items-center justify-between gap-6 p-6">
+    <Card className="flex w-full shrink-0 flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
       {/* profile-info-group — RTL: الأفاتار يمين */}
       <div className="flex min-w-0 items-center gap-5">
         <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-tint text-xl font-extrabold text-brand">
@@ -283,7 +357,7 @@ export function StudentProfileCard({ onBan }: { onBan: () => void }) {
       </div>
 
       {/* profile-actions — RTL: «ريست الجهاز» يمين و«حظر الطالب» شمال */}
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-3">
         <ButtonLink
           to={`/students/${s.id}/device-reset`}
           variant="secondary"
@@ -419,9 +493,9 @@ export function StudentDetailBody({ onBan }: { onBan: () => void }) {
       <StudentProfileCard onBan={onBan} />
 
       {/* middle-panels — RTL: لوح الجهاز يمين وسجل الريست شمال — node 28:793 */}
-      <div className="flex w-full shrink-0 items-start gap-6">
+      <div className="flex w-full shrink-0 flex-col gap-6 lg:flex-row lg:items-start">
         {/* device-panel — node 28:809 */}
-        <Card className="flex w-[480px] shrink-0 flex-col gap-4 p-5">
+        <Card className="flex w-full shrink-0 flex-col gap-4 p-5 lg:w-[480px]">
           <p className="w-full text-right text-lg font-extrabold text-ink">
             {s.devicePanelTitle}
           </p>
@@ -454,6 +528,7 @@ export function StudentDetailBody({ onBan }: { onBan: () => void }) {
               columns={RESET_LOG_COLUMNS}
               rows={STUDENT_RESET_LOG}
               rowKey={(r) => r.id}
+              className="min-w-[500px]"
             />
           </div>
         </Card>
@@ -477,6 +552,7 @@ export function StudentDetailBody({ onBan }: { onBan: () => void }) {
           columns={subscriptionColumns(s.id)}
           rows={STUDENT_SUBSCRIPTIONS}
           rowKey={(r) => r.id}
+          className="min-w-[850px]"
         />
       </Card>
     </>

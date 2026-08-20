@@ -56,7 +56,7 @@ export default function Dashboard() {
       {/* charts-row — node 7:73، h280، gap16.
           RTL: أول كارت في الـ DOM يظهر يمين، فالترتيب معكوس عن الديزاين
           (الديزاين من الشمال: معدل → الاشتراكات → الإيراد) */}
-      <div className="flex h-[280px] w-full shrink-0 items-start gap-4">
+      <div className="flex h-auto w-full shrink-0 flex-col gap-4 lg:h-[280px] lg:flex-row lg:items-start">
         <Card className="flex h-full min-w-0 flex-1 flex-col gap-4 p-5">
           <h2 className="w-full text-right text-md font-bold text-ink">
             الإيراد الشهري (ج.م)
@@ -90,6 +90,7 @@ export default function Dashboard() {
           columns={COLUMNS}
           rows={RECENT_ACTIVITY}
           rowKey={(r) => r.id}
+          className="min-w-[900px]"
         />
       </Card>
     </Page>

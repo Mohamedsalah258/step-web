@@ -64,7 +64,7 @@ export default function TermReset() {
       {/* level-selectors — nodes 26:284 … 26:310 */}
       <Card className="w-full shrink-0">
         <CardHeader title="اختر المستوى الأكاديمي للتصفير" />
-        <div className="grid grid-cols-3 gap-5 p-5">
+        <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
           {TERM_RESET_LEVELS.map((l) => (
             <SelectField
               key={l.label}
@@ -96,6 +96,7 @@ export default function TermReset() {
           columns={LOG_COLUMNS}
           rows={TERM_RESET_LOG}
           rowKey={(r) => r.id}
+          className="min-w-[700px]"
         />
       </Card>
     </Page>

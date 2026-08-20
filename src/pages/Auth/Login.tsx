@@ -13,7 +13,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen w-full bg-white">
       {/* form-pane — RTL: أول عنصر في الـ DOM = يمين */}
-      <div className="flex min-w-0 flex-1 items-center justify-center px-16 py-12">
+      <div className="flex min-w-0 flex-1 items-center justify-center px-6 py-8 sm:px-16 sm:py-12">
         <div className="flex w-full max-w-[420px] flex-col gap-8">
           {/* brand — اللوجو يمين والنص شماله */}
           <div className="flex items-center gap-3">

@@ -81,6 +81,7 @@ export default function Universities() {
       columns={COLUMNS}
       rows={UNIVERSITIES}
       rowKey={(r) => r.id}
+      tableClassName="min-w-[900px]"
     />
   )
 }

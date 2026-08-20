@@ -15,6 +15,7 @@ const COLUMNS: Column<SkeletonRow>[] = STATE_SKELETON.columns.map((c) => ({
   key: c.key,
   header: c.header,
   width: c.width,
+  flex: c.key === 'name',
   render: (r: SkeletonRow) => (
     <span
       className="skeleton block h-4 rounded"
@@ -28,7 +29,7 @@ export default function StateSkeleton() {
   return (
     <Page title={STATE_SKELETON.pageTitle}>
       {/* stats-skeleton-row — node 29:1617 (أول عنصر = يمين) */}
-      <div className="flex w-full shrink-0 items-center gap-4">
+      <div className="flex w-full shrink-0 flex-wrap items-center gap-4">
         {STATE_SKELETON.statsWidths.map((w, i) => (
           <div
             key={i}
@@ -41,7 +42,12 @@ export default function StateSkeleton() {
 
       {/* data-table-card — node 29:1624 */}
       <Card className="w-full shrink-0 overflow-hidden">
-        <DataTable columns={COLUMNS} rows={ROWS} rowKey={(r) => r.id} />
+        <DataTable
+          columns={COLUMNS}
+          rows={ROWS}
+          rowKey={(r) => r.id}
+          className="min-w-[700px]"
+        />
       </Card>
     </Page>
   )

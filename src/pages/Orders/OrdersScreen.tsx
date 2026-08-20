@@ -41,7 +41,7 @@ export function OrdersScreen({
       <Tabs items={tabs} value={tab} onChange={setTab} />
 
       {/* filters-row — RTL: البحث يمين ثم التاريخ ثم الكورسات */}
-      <div className="flex w-full shrink-0 items-center gap-4">
+      <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <SearchField placeholder={ORDER_FILTERS.searchPlaceholder} />
         <DateField label={ORDER_FILTERS.dateLabel} width={220} />
         <FilterSelect
@@ -56,6 +56,7 @@ export function OrdersScreen({
           columns={orderColumns(onOpen ?? (() => {}))}
           rows={rows}
           rowKey={(r) => r.id}
+          className="min-w-[1000px]"
         />
         <Pagination page={page} pages={ORDERS_PAGES} total={ORDERS_TOTAL} />
       </Card>

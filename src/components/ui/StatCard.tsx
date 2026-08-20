@@ -30,7 +30,7 @@ export function StatCard({ stat }: { stat: Stat }) {
   const tone = NOTE_TONE[stat.noteTone ?? 'muted']
 
   return (
-    <div className="flex h-[140px] min-w-0 flex-1 flex-col gap-3 rounded-card border border-line bg-white p-4 shadow-card">
+    <div className="flex h-auto min-h-[120px] min-w-[200px] max-w-full flex-1 flex-col gap-3 rounded-card border border-line bg-white p-4 shadow-card">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-right text-sm font-normal text-muted">
           {stat.label}
@@ -60,10 +60,15 @@ export function StatCard({ stat }: { stat: Stat }) {
   )
 }
 
-/** صف كروت KPI — gap16 (فيجما node 7:20). أول عنصر = يمين */
+/**
+ * صف كروت KPI — gap16 (فيجما node 7:20). أول عنصر = يمين.
+ * flex-wrap بدل grid ثابت الأعمدة عشان لو عدد الكروت مش قابل للقسمة
+ * على عدد الأعمدة (زي 6 كروت في الداشبورد)، آخر صف يمتلئ بالكامل
+ * (كل كارت بياخد نصيبه من المساحة الفاضية) بدل ما يسيب فراغ.
+ */
 export function StatRow({ stats }: { stats: Stat[] }) {
   return (
-    <div className="flex w-full shrink-0 items-start gap-4">
+    <div className="flex w-full flex-wrap gap-4">
       {stats.map((s) => (
         <StatCard key={s.label} stat={s} />
       ))}

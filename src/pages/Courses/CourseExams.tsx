@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom'
 import { DataTable } from '@/components/ui/Table'
 import { EmptyState } from '@/components/ui/States'
 import {
@@ -33,7 +34,7 @@ export function CourseExamsShell({
       counts={counts}
       courseId={courseId}
     >
-      <div className="flex w-full shrink-0 items-start gap-4">
+      <div className="flex w-full shrink-0 flex-col gap-4 lg:flex-row lg:items-start">
         <ListCard title={H.title} reorder={H.reorder}>
           <DataTable
             columns={fileColumns(
@@ -42,6 +43,7 @@ export function CourseExamsShell({
             )}
             rows={exams}
             rowKey={(r) => r.id}
+            className="min-w-[800px]"
             empty={
               <EmptyState
                 title={EXAMS_EMPTY.title}
@@ -67,5 +69,12 @@ export function CourseExamsShell({
 
 /** فيجما frame: v3-course-exams (node 13:667) */
 export default function CourseExams() {
-  return <CourseExamsShell exams={COURSE_EXAMS} counts={COURSE_TAB_COUNTS} />
+  const { id = '1' } = useParams()
+  return (
+    <CourseExamsShell
+      exams={COURSE_EXAMS}
+      counts={COURSE_TAB_COUNTS}
+      courseId={id}
+    />
+  )
 }

@@ -78,7 +78,7 @@ export default function Maintenance() {
   return (
     <Page title={MAINTENANCE_PAGE_TITLE}>
       {/* RTL: لوحة التحكم يمين (فيجما x=474) والمعاينة يسار (x=0) */}
-      <div className="flex w-full shrink-0 items-start gap-6">
+      <div className="flex w-full shrink-0 flex-col gap-6 lg:flex-row lg:items-start">
         <Card className="flex min-w-0 flex-1 flex-col gap-6 p-8">
           <div className="flex flex-col gap-2 text-right">
             <h2 className="text-xl font-extrabold text-ink">
@@ -132,12 +132,13 @@ export default function Maintenance() {
                 columns={LOG_COLUMNS}
                 rows={MAINTENANCE_LOG}
                 rowKey={(r) => r.id}
+                className="min-w-[500px]"
               />
             </div>
           </div>
         </Card>
 
-        <PanelCard className="w-[450px] shrink-0 items-center">
+        <PanelCard className="w-full shrink-0 items-center lg:w-[450px]">
           <p className="w-full text-right text-md font-bold text-ink">
             {MAINTENANCE_PREVIEW.cardTitle}
           </p>

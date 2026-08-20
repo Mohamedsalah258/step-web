@@ -70,7 +70,7 @@ export default function ActivityLog() {
   return (
     <Page title={ACTIVITY_TITLE}>
       {/* stats-row — node 26:50 */}
-      <div className="grid w-full shrink-0 grid-cols-3 gap-4">
+      <div className="grid w-full shrink-0 grid-cols-1 gap-4 sm:grid-cols-3">
         {ACTIVITY_STATS.map((s) => (
           <Card
             key={s.badge}
@@ -86,7 +86,7 @@ export default function ActivityLog() {
       </div>
 
       {/* filter-row — node 26:63: البحث يمين ثم نوع العملية ثم التاريخ ثم التصدير شمال */}
-      <Card className="flex w-full shrink-0 items-center gap-4 p-4">
+      <Card className="flex w-full shrink-0 flex-col items-stretch gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <SearchField
           placeholder={ACTIVITY_FILTERS.searchPlaceholder}
           width={623}
@@ -97,7 +97,7 @@ export default function ActivityLog() {
           width={200}
         />
         <DateField label={ACTIVITY_FILTERS.dateLabel} width={127} />
-        <Button variant="secondary" icon={Download}>
+        <Button variant="secondary" icon={Download} className="w-full sm:w-auto">
           {ACTIVITY_FILTERS.exportLabel}
         </Button>
       </Card>
@@ -108,6 +108,7 @@ export default function ActivityLog() {
           columns={COLUMNS}
           rows={ACTIVITY_LOG}
           rowKey={(r) => r.id}
+          className="min-w-[950px]"
           empty={
             <EmptyState
               title="لا توجد عمليات مسجّلة"

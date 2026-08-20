@@ -59,10 +59,15 @@ export default {
         shimmer: {
           '100%': { transform: 'translateX(-100%)' },
         },
+        'sidebar-in': {
+          from: { transform: 'translateX(100%)' },
+          to: { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in .15s ease-out',
         'scale-in': 'scale-in .18s ease-out',
+        'sidebar-in': 'sidebar-in .25s ease-out',
       },
     },
   },

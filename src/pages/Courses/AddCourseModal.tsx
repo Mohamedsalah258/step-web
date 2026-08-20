@@ -47,7 +47,15 @@ export default function AddCourseModal() {
         <UploadDrop title={M.coverLabel} hint={M.coverHint} height={110} />
       </div>
 
-      <ModalSelect label={M.statusLabel} options={M.statusOptions} />
+      <div className="grid grid-cols-2 gap-4">
+        <ModalField
+          label={M.orderLabel}
+          placeholder={M.orderPlaceholder}
+          type="number"
+          mono
+        />
+        <ModalSelect label={M.statusLabel} options={M.statusOptions} />
+      </div>
     </Modal>
   )
 }

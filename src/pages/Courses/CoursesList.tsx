@@ -144,6 +144,7 @@ export function CoursesListShell({
               }
             />
           }
+          className="min-w-[1000px]"
         />
         {empty ? null : (
           <Pagination

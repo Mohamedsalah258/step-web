@@ -49,49 +49,51 @@ export function DataTable<T>({
     c.flex ? undefined : { width: c.width ?? 180 }
 
   return (
-    <div className={cn('flex flex-col', className)}>
-      {/* table-header */}
-      <div className="flex items-center bg-surface px-5 py-3">
-        {columns.map((c) => (
-          <div
-            key={c.key}
-            className={cn(
-              'text-sm font-bold text-muted',
-              box(c),
-              ALIGN_TEXT[c.align ?? 'right'],
-            )}
-            style={style(c)}
-          >
-            {c.header}
-          </div>
-        ))}
-      </div>
+    <div className="w-full overflow-x-auto">
+      <div className={cn('flex flex-col', className)}>
+        {/* table-header */}
+        <div className="flex items-center bg-surface px-5 py-3">
+          {columns.map((c) => (
+            <div
+              key={c.key}
+              className={cn(
+                'text-sm font-bold text-muted',
+                box(c),
+                ALIGN_TEXT[c.align ?? 'right'],
+              )}
+              style={style(c)}
+            >
+              {c.header}
+            </div>
+          ))}
+        </div>
 
-      {rows.length === 0 ? (
-        <div className="w-full">{empty}</div>
-      ) : (
-        rows.map((row, i) => (
-          <div
-            key={rowKey(row, i)}
-            className="flex items-center border-b border-line px-5 py-3.5 transition-colors last:border-b-0 hover:bg-surface/60"
-          >
-            {columns.map((c) => (
-              <div
-                key={c.key}
-                className={cn(
-                  'flex items-center text-sm text-ink',
-                  box(c),
-                  ALIGN_FLEX[c.align ?? 'right'],
-                  ALIGN_TEXT[c.align ?? 'right'],
-                )}
-                style={style(c)}
-              >
-                {c.render(row, i)}
-              </div>
-            ))}
-          </div>
-        ))
-      )}
+        {rows.length === 0 ? (
+          <div className="w-full">{empty}</div>
+        ) : (
+          rows.map((row, i) => (
+            <div
+              key={rowKey(row, i)}
+              className="flex items-center border-b border-line px-5 py-3.5 transition-colors last:border-b-0 hover:bg-surface/60"
+            >
+              {columns.map((c) => (
+                <div
+                  key={c.key}
+                  className={cn(
+                    'flex items-center text-sm text-ink',
+                    box(c),
+                    ALIGN_FLEX[c.align ?? 'right'],
+                    ALIGN_TEXT[c.align ?? 'right'],
+                  )}
+                  style={style(c)}
+                >
+                  {c.render(row, i)}
+                </div>
+              ))}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   )
 }

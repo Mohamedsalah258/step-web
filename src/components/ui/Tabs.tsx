@@ -30,7 +30,7 @@ export function Tabs({
   const setActive = onChange ?? setInternal
 
   return (
-    <div className={cn('flex shrink-0 items-center gap-2', className)}>
+    <div className={cn('flex max-w-full shrink-0 items-center gap-2 overflow-x-auto scrollbar-hide', className)}>
       {items.map((t, i) => {
         const on = i === active
         return (
@@ -72,7 +72,7 @@ export function RouteTabs({
   className?: string
 }) {
   return (
-    <div className={cn('flex shrink-0 items-center gap-2', className)}>
+    <div className={cn('flex max-w-full shrink-0 items-center gap-2 overflow-x-auto scrollbar-hide', className)}>
       {items.map((t) => (
         <NavLink
           key={t.to}

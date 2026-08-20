@@ -286,8 +286,15 @@ grep -rn "text-end\|justify-end\|items-end" src/      # راجع كل نتيجة
    نصف قطر الحبّة وارتفاعها بس.
 6. **`VBarChart`** بيرسم عناوين الفئات بس، مش قيمة كل عمود فوقه زي بعض شاشات
    التقارير. نفس الأرقام موجودة في الجداول تحتها.
-7. **مفيش responsive** — الديزاين 1440px ثابت والكود متبعه.
+7. **~~مفيش responsive~~ (تم حله)** — الديزاين أصبح متجاوباً بالكامل من الموبايل وحتى شاشات 1440px،
+   شامل دومين الهيكل الأكاديمي اللي كان فات في أول جولة (شوف سجل التغييرات 2026-08-21).
 8. **مفيش tailwind-merge** — `lib/cn.ts` دمج بسيط. لو كلاسين بيتعارضوا، رتّبهم يدوي.
+
+> ⚠️ **قاعدة لأي جدول جديد:** `DataTable` بيلف نفسه في `overflow-x-auto`، لكن ده
+> مش كافي لوحده — لازم تمرّر `className="min-w-[Npx]"` (أو `tableClassName` لو
+> بتستخدم `AcademicListScreen`) بقيمة تقريبية = مجموع أعمدة الـ `width` الثابتة
+> + ~250px للعمود المرن (`flex: true`). من غيرها، الأعمدة المرنة بتتزنق بدل ما
+> الجدول يعمل scroll أفقي على الموبايل (قاعدة 5 في `CLAUDE.md`).
 
 ---
 
@@ -298,5 +305,12 @@ grep -rn "text-end\|justify-end\|items-end" src/      # راجع كل نتيجة
 
 | التاريخ | التغيير | الملفات |
 |---|---|---|
+| 2026-08-21 | مقارنة الديزاين المرجعي بشاشة `/courses/:id/content` كشفت فرقين: (1) ترتيب صف الفيديو (`VideoRow`) كان بالمقلوب — أيقونة الفيديو وزرار السحب (drag) في مكان تشغيل العنوان، وأزرار التعديل/الحذف يمين بدل شمال؛ اتصلح الترتيب ليطابق التصميم (أيقونة ▶ + العنوان يمين، المدة والتاريخ في النص، تعديل/حذف شمال) وشيلت زرار السحب اللي مكانش في التصميم أصلًا. (2) هيدر الكورس ماكانش فيه غلاف الكورس (thumbnail) خالص — اتضاف بلوك بديل بمقاس 140×104 (قرار #7، لحد ما يتوفر غلاف حقيقي) | `pages/Courses/CourseContent.tsx` · `pages/Courses/courses-parts.tsx` |
+| 2026-08-21 | جدول الطلاب (`/students`) كل أعمدته كانت `width` ثابت بدون أي عمود `flex: true` — فعلى الشاشات الواسعة الأعمدة كلها بتتلزّق يمين (RTL) ويفضل فراغ فاضي كبير يسار الكارت. ضفت `flex: true` لعمود «الاسم» (زي باقي جداول المشروع). فحصت كل تعريفات `Column<T>[]` في المشروع ولقيت نفس الغلط في `StateSkeleton.tsx` (عمود «اسم الكورس») وصلحته كمان | `pages/Students/students-parts.tsx` · `pages/States/StateSkeleton.tsx` |
+| 2026-08-21 | نفس نمط «مودال مفتوح افتراضيًا» (اتصلح قبل كده في Orders/Students-list) لقيته تالت مرة في `/students/:id`: `StudentDetail` كان بيمرر `banOpen` = true افتراضيًا فمودال «حظر الطالب» يفتح من أول تحميل الصفحة. اتشال الـ prop خالص (بقى مقفول افتراضيًا، ويفتح بس بالضغط على «حظر الطالب») | `pages/Students/StudentDetail.tsx` |
+| 2026-08-21 | إصلاح تنقّل صفحة الطلاب: (1) اسم الطالب في الجدول كان مجرد نص من غير أي رابط رغم إن صفحة تفاصيل كاملة (`StudentDetail.tsx`) موجودة أصلًا وماكانتش وصلة إليها غير بالصدفة عن طريق فلو الريست — بقى الاسم Link لـ `/students/:id`. (2) زرار «ريست الجهاز» جوّه الـ quick-view drawer كان `ButtonLink` بيعمل route لمودال متلحّق أصلًا بصفحة التفاصيل الكاملة بس (`students/:id/device-reset`)، فكان بيفتح صفحة التفاصيل كاملة وراه بدل ما يفضل على نفس شاشة القائمة — استخرجت محتوى المودال لكومبوننت مشترك (`DeviceResetModalContent`) قابل للفتح كـ state محلي (زرار عادي) من الدروار، وكـ route عادي من صفحة التفاصيل، من غير أي تكرار كود | `pages/Students/students-parts.tsx` · `pages/Students/DeviceResetModal.tsx` |
+| 2026-08-21 | إصلاحات تفاعل واكتشافات إضافية بعد المراجعة: (1) صف كروت الداشبورد كان بيتزنق في العرض النصفي لإن `items-start` كان شغال طول الوقت بدل ما يتفعّل بس مع `lg:flex-row` — نفس الغلط اتصلح في 15+ مكان (Dashboard/Banners/Maintenance/Settings/Notifications/PaymentMethods/AcademicTable/reports-parts/students-parts/CourseContent/CourseExams/CourseNotes/CourseNotesTab)، (2) `ExamDetail.tsx` كان متنسي تمامًا من الـ Responsive (هيدر وعمود معلومات بعرض ثابت 340px)، (3) `StatRow` بقى `flex-wrap` بدل `grid` بعدد أعمدة ثابت عشان لو عدد الكروت (زي 6 في الداشبورد) مش قابل للقسمة على عدد الأعمدة يفضل يملأ الصف بالكامل، (4) دروار تفاصيل الطلب في `/orders` والطالب في `/students` كانوا بيفتحوا تلقائي من أول تحميل الصفحة (نسخ حرفي لفريم فيجما فيه الدروار مفتوح) — بقوا مقفولين افتراضيًا وبيفتحوا بالضغط على «عرض التفاصيل» زي ما المفروض | `components/ui/StatCard.tsx` · `pages/Orders/OrdersList.tsx` · `pages/Students/StudentsList.tsx` · `pages/Courses/ExamDetail.tsx` · باقي الملفات المذكورة فوق |
+| 2026-08-21 | رفيو ومعالجة فجوات جولة الـ Responsive: (1) إضافة `min-w` ناقصة لـ 15 جدول (كانت بتتزنق بدل ما تعمل scroll)، (2) تغطية دومين الهيكل الأكاديمي اللي كان فات بالكامل (5 شاشات + AcademicHeader المشترك)، (3) قفل سكرول الصفحة لما overlay السايدبار أو درج الطالب يفتحوا على الموبايل (`useBodyScrollLock` جديد)، (4) تحسينات صغيرة (a11y على backdrop الدرج، تعليق توضيحي في `Modal.tsx`) | `pages/Academic/*` · `pages/Reports/*` · `pages/Students/ActivityLog.tsx` · `students-parts.tsx` · `pages/Content/Maintenance.tsx` · `pages/States/StateSkeleton.tsx` · `pages/Courses/CourseExams.tsx` · `CourseNotes.tsx` · `components/layout/Sidebar.tsx` · `components/ui/Modal.tsx` · `lib/useBodyScrollLock.ts` (جديد) |
+| 2026-08-20 | إضافة دعم Responsive Design لكافة المكونات والصفحات (الموبايل والتابلت) وتحديثات الـ Scroll | معظم مكونات الصفحات، الـ Layout، و `components/ui/` |
 | 2026-08-20 | إضافة `WORKFLOW.md` وتحديث `CLAUDE.md` ليوديله؛ أرشفة البريف الأصلي | `WORKFLOW.md` · `CLAUDE.md` · `docs/original-brief.md` |
 | 2026-08-20 | التسليم الأول: 62 شاشة من فيجما، نظام ديزاين كامل، راوتر، بيانات وهمية | المشروع كله |

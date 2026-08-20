@@ -42,10 +42,10 @@ export function FilterRow({
   className?: string
 }) {
   return (
-    <div className={cn('flex w-full shrink-0 items-center gap-4', className)}>
-      {action}
-      <div className="h-px min-w-0 flex-1 bg-line" />
-      <div className="flex shrink-0 items-center gap-4">{children}</div>
+    <div className={cn('flex w-full flex-col-reverse items-start gap-4 md:flex-row md:items-center', className)}>
+      <div className="w-full shrink-0 md:w-auto">{action}</div>
+      <div className="hidden h-px min-w-0 flex-1 bg-line md:block" />
+      <div className="flex w-full shrink-0 flex-wrap items-center gap-3 md:w-auto sm:gap-4">{children}</div>
     </div>
   )
 }
@@ -62,8 +62,8 @@ export function Pagination({
 }) {
   const list = Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1)
   return (
-    <div className="flex items-center justify-between gap-4 border-t border-line px-5 py-4">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-col items-center justify-between gap-4 border-t border-line p-4 sm:flex-row sm:px-5">
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
         <button
           type="button"
           disabled={page <= 1}
@@ -138,8 +138,8 @@ export function InfoGrid({
   return (
     <div
       className={cn(
-        'grid gap-x-8',
-        cols === 3 ? 'grid-cols-3' : 'grid-cols-2',
+        'grid gap-y-4 gap-x-8',
+        cols === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2',
       )}
     >
       {items.map((it) => (

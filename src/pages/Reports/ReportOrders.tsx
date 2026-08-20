@@ -77,6 +77,7 @@ export default function ReportOrders() {
           columns={COLUMNS}
           rows={ORDER_ROWS}
           rowKey={(r) => r.index}
+          className="min-w-[800px]"
         />
       </Card>
 

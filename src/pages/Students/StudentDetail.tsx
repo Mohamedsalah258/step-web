@@ -7,8 +7,8 @@ import { BAN_MODAL, STUDENTS_TITLE } from '@/data/students'
 import { SpecPlate, StudentDetailBody } from './students-parts'
 
 /** الشِل المشترك بين v3-student-detail (28:750) ونسخته بدون مودال (35:7124) */
-export function StudentDetailShell({ banOpen }: { banOpen?: boolean }) {
-  const [ban, setBan] = useState(Boolean(banOpen))
+export function StudentDetailShell() {
+  const [ban, setBan] = useState(false)
 
   return (
     <Page title={STUDENTS_TITLE}>
@@ -50,7 +50,7 @@ export function StudentDetailShell({ banOpen }: { banOpen?: boolean }) {
   )
 }
 
-/** فيجما frame: v3-student-detail مع مودال الحظر مفتوح (node 28:750) */
+/** فيجما frame: v3-student-detail (node 28:750) — مودال الحظر بيفتح بالضغط بس */
 export default function StudentDetail() {
-  return <StudentDetailShell banOpen />
+  return <StudentDetailShell />
 }

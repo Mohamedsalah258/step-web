@@ -18,23 +18,25 @@ import {
 import { StudentDrawer, studentColumns } from './students-parts'
 
 /** الشِل المشترك بين فريمي v3-students-devices (7:920 و35:6810) */
-export function StudentsListShell({ initialOpen }: { initialOpen?: boolean }) {
-  const [open, setOpen] = useState(Boolean(initialOpen))
+export function StudentsListShell() {
+  const [open, setOpen] = useState(false)
 
   return (
     <Page title={STUDENTS_TITLE}>
       {/* filter-row — node 7:991: التابس يمين ثم البحث ثم ترتيب الكورس شمال */}
-      <div className="flex w-full shrink-0 items-center gap-4">
-        <Tabs items={STUDENT_TABS} />
-        <SearchField
-          placeholder={STUDENT_FILTERS.searchPlaceholder}
-          width={520}
-        />
-        <FilterSelect
-          label={STUDENT_FILTERS.courseSortLabel}
-          options={[...STUDENT_FILTERS.courseSortOptions]}
-          width={171}
-        />
+      <div className="flex w-full shrink-0 flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <Tabs items={STUDENT_TABS} className="w-full md:w-auto" />
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center">
+          <SearchField
+            placeholder={STUDENT_FILTERS.searchPlaceholder}
+            width={520}
+          />
+          <FilterSelect
+            label={STUDENT_FILTERS.courseSortLabel}
+            options={[...STUDENT_FILTERS.courseSortOptions]}
+            width={171}
+          />
+        </div>
       </div>
 
       {/* data-table-card — node 7:1015 */}
@@ -49,6 +51,7 @@ export function StudentsListShell({ initialOpen }: { initialOpen?: boolean }) {
               description="جرّب تغيير كلمة البحث أو الفلاتر المختارة."
             />
           }
+          className="min-w-[900px]"
         />
         <Pagination page={1} pages={STUDENTS_PAGES} total={STUDENTS_TOTAL} />
       </Card>
@@ -58,7 +61,7 @@ export function StudentsListShell({ initialOpen }: { initialOpen?: boolean }) {
   )
 }
 
-/** فيجما frame: v3-students-devices مع detail-drawer مفتوح (node 7:920) */
+/** فيجما frame: v3-students-devices (node 7:920) — الدروار بيفتح بالضغط بس */
 export default function StudentsList() {
-  return <StudentsListShell initialOpen />
+  return <StudentsListShell />
 }

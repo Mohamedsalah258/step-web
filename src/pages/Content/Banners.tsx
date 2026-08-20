@@ -28,9 +28,9 @@ export default function Banners() {
       </div>
 
       {/* RTL: معرض البنرات يمين (فيجما x=444) وفورم الإضافة يسار (x=0) */}
-      <div className="flex w-full shrink-0 items-start gap-6">
+      <div className="flex w-full shrink-0 flex-col gap-6 lg:flex-row lg:items-start">
         {/* البنرات النشطة — node 7:2257 */}
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-4">
+        <div className="grid min-w-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2">
           {BANNERS.map((b) => (
             <Card key={b.id} className="flex flex-col overflow-hidden">
               <div className="flex h-40 shrink-0 items-center justify-center bg-navy p-6">
@@ -70,7 +70,7 @@ export default function Banners() {
         </div>
 
         {/* فورم إضافة بنر — node 7:2234 */}
-        <PanelCard className="w-[420px] shrink-0">
+        <PanelCard className="w-full shrink-0 lg:w-[420px]">
           <h2 className="text-right text-md font-bold text-ink">
             {BANNER_FORM.cardTitle}
           </h2>

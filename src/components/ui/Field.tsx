@@ -20,10 +20,10 @@ export function SearchField({
     <div
       className={cn(
         'flex h-[42px] items-center gap-2.5 rounded-ctl border border-line bg-white px-4',
-        width ? 'shrink-0' : 'min-w-0 flex-1',
+        width ? 'w-full shrink-0 sm:w-auto' : 'min-w-0 flex-1',
         className,
       )}
-      style={width ? { width } : undefined}
+      style={width ? { maxWidth: width } : undefined}
     >
       <input
         type="search"
@@ -50,10 +50,10 @@ export function FilterSelect({
   return (
     <div
       className={cn(
-        'relative flex h-[42px] shrink-0 items-center rounded-ctl border border-line bg-white',
+        'relative flex h-[42px] w-full shrink-0 items-center rounded-ctl border border-line bg-white sm:w-auto',
         className,
       )}
-      style={width ? { width } : undefined}
+      style={width ? { maxWidth: width } : undefined}
     >
       <select
         defaultValue=""
@@ -87,10 +87,10 @@ export function DateField({
   return (
     <div
       className={cn(
-        'relative flex h-[42px] shrink-0 items-center rounded-ctl border border-line bg-white px-4',
+        'relative flex h-[42px] w-full shrink-0 items-center rounded-ctl border border-line bg-white px-4 sm:w-auto',
         className,
       )}
-      style={width ? { width } : undefined}
+      style={width ? { maxWidth: width } : undefined}
     >
       <span className="min-w-0 flex-1 text-right text-base text-muted">
         {label}

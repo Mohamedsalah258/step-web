@@ -32,14 +32,14 @@ export function ReportFilters() {
   return (
     <Card
       variant="card"
-      className="flex w-full shrink-0 items-center justify-between gap-4 p-4"
+      className="flex w-full shrink-0 flex-col justify-between gap-4 p-4 lg:flex-row lg:items-center"
     >
-      <div className="flex shrink-0 items-center gap-4">
+      <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 lg:w-auto">
         <FilterSelect label={REPORT_FILTERS.groupBy} width={180} />
         <DateField label={REPORT_FILTERS.dateRange} width={260} />
         <Checkbox label={REPORT_FILTERS.compare} defaultOn />
       </div>
-      <div className="flex shrink-0 flex-row-reverse items-center gap-2">
+      <div className="flex w-full shrink-0 flex-wrap flex-row-reverse items-center gap-2 lg:w-auto">
         {REPORT_FILTERS.exports.map((label) => (
           <Button key={label} variant="secondary" size="sm" icon={Download}>
             {label}
@@ -59,7 +59,7 @@ export function ReportChartCard({
   items: Array<{ label: string; value: number }>
 }) {
   return (
-    <Card className="flex h-[304px] w-full shrink-0 flex-col gap-4 p-5">
+    <Card className="flex h-auto w-full shrink-0 flex-col gap-4 p-5 lg:h-[304px]">
       <h2 className="w-full text-right text-lg font-extrabold text-ink">
         {title}
       </h2>
@@ -79,7 +79,7 @@ export function ReportSummaryBar({
   return (
     <Card
       variant="card"
-      className="flex w-full shrink-0 items-center justify-between gap-4 p-4 text-base font-bold"
+      className="flex w-full shrink-0 flex-col justify-between gap-4 p-4 text-base font-bold sm:flex-row sm:items-center"
     >
       <p className="whitespace-nowrap text-ink">{right}</p>
       <p className="whitespace-nowrap text-brand">{left}</p>

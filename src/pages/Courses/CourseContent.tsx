@@ -1,5 +1,5 @@
-import { Video, Pencil, Trash2, GripVertical } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Play, Pencil, Trash2 } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
 import { TextField } from '@/components/ui/Field'
 import { EmptyState } from '@/components/ui/States'
 import { ButtonLink } from '@/components/ui/Button'
@@ -22,10 +22,22 @@ import {
   UploadDrop,
 } from './courses-parts'
 
-/** صف فيديو — فيجما node 2007:4152 */
+/**
+ * صف فيديو — فيجما node 2007:4152.
+ * RTL: أيقونة التشغيل + العنوان يمين، المدة والتاريخ في النص، وأزرار
+ * التعديل/الحذف شمال (أول عنصر في الـ DOM = يمين).
+ */
 function VideoRow({ v, courseId }: { v: CourseVideo; courseId: string }) {
   return (
     <div className="flex items-center gap-3 border-b border-line px-5 py-3.5 last:border-b-0 hover:bg-surface/60">
+      <Play className="size-4 shrink-0 text-brand" strokeWidth={2} />
+      <span className="min-w-0 flex-1 truncate text-right text-sm font-semibold text-ink">
+        {v.title}
+      </span>
+      <span className="num shrink-0 text-sm font-bold text-ink">
+        {v.duration}
+      </span>
+      <span className="num shrink-0 text-sm text-muted">{v.date}</span>
       <div className="flex shrink-0 items-center gap-1.5">
         <Link
           to={`/courses/${courseId}/content/${v.id}/edit`}
@@ -42,15 +54,6 @@ function VideoRow({ v, courseId }: { v: CourseVideo; courseId: string }) {
           <Trash2 className="size-4" strokeWidth={2} />
         </button>
       </div>
-      <span className="num shrink-0 text-sm text-muted">{v.date}</span>
-      <span className="num shrink-0 text-sm font-bold text-ink">
-        {v.duration}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-right text-sm font-semibold text-ink">
-        {v.title}
-      </span>
-      <Video className="size-4 shrink-0 text-brand" strokeWidth={2} />
-      <GripVertical className="size-4 shrink-0 cursor-grab text-line" />
     </div>
   )
 }
@@ -71,7 +74,7 @@ export function CourseContentShell({
       courseId={courseId}
     >
       {/* RTL: كارت القائمة يمين ونموذج الإضافة شمال */}
-      <div className="flex w-full shrink-0 items-start gap-4">
+      <div className="flex w-full shrink-0 flex-col gap-4 lg:flex-row lg:items-start">
         <ListCard
           title={VIDEOS_LIST_HEADER.title}
           reorder={VIDEOS_LIST_HEADER.reorder}
@@ -116,8 +119,13 @@ export function CourseContentShell({
 
 /** فيجما frame: v3-courses-content (node 2007:4062) */
 export default function CourseContent() {
+  const { id = '1' } = useParams()
   return (
-    <CourseContentShell videos={COURSE_VIDEOS} counts={COURSE_TAB_COUNTS} />
+    <CourseContentShell
+      videos={COURSE_VIDEOS}
+      counts={COURSE_TAB_COUNTS}
+      courseId={id}
+    />
   )
 }
 

@@ -92,6 +92,7 @@ export default function ReportsOverview() {
           columns={COLUMNS}
           rows={REVENUE_ROWS}
           rowKey={(r) => r.faculty}
+          className="min-w-[950px]"
         />
       </Card>
 

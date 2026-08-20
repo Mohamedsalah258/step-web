@@ -27,7 +27,7 @@ export function AcademicHeader({
   actions?: React.ReactNode
 }) {
   return (
-    <div className="flex w-full shrink-0 items-center justify-between gap-4">
+    <div className="flex w-full shrink-0 flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
       {/* breadcrumb-group — gap4، العنوان 20px extrabold */}
       <div className="flex min-w-0 flex-col items-start gap-1">
         <Breadcrumb items={breadcrumb} />
@@ -37,7 +37,9 @@ export function AcademicHeader({
       </div>
       {/* action-group — gap12 */}
       {actions ? (
-        <div className="flex shrink-0 items-center gap-3">{actions}</div>
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-3 md:w-auto">
+          {actions}
+        </div>
       ) : null}
     </div>
   )
@@ -55,6 +57,7 @@ export function AcademicListScreen<T>({
   columns,
   rows,
   rowKey,
+  tableClassName,
   children,
 }: {
   pageTitle: string
@@ -64,6 +67,8 @@ export function AcademicListScreen<T>({
   columns: Column<T>[]
   rows: T[]
   rowKey: (row: T, index: number) => string
+  /** حد أدنى لعرض الجدول عشان يعمل scroll أفقي بدل ما يتزنق على الموبايل */
+  tableClassName?: string
   /** أقسام إضافية بعد كارت الجدول (زي linked-courses في شاشة الترمات) */
   children?: React.ReactNode
 }) {
@@ -75,7 +80,12 @@ export function AcademicListScreen<T>({
         actions={actions}
       />
       <Card className="w-full shrink-0 overflow-hidden">
-        <DataTable columns={columns} rows={rows} rowKey={rowKey} />
+        <DataTable
+          columns={columns}
+          rows={rows}
+          rowKey={rowKey}
+          className={tableClassName}
+        />
       </Card>
       {children}
     </Page>

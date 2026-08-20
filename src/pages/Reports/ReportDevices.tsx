@@ -78,6 +78,7 @@ export default function ReportDevices() {
           columns={COLUMNS}
           rows={DEVICE_ROWS}
           rowKey={(r) => r.index}
+          className="min-w-[850px]"
         />
       </Card>
 

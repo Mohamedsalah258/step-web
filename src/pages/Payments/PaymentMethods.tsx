@@ -11,7 +11,7 @@ export default function PaymentMethods() {
     <Page title="طرق الدفع">
       {/* header card — node 7:1840: العنوان يمين وزر الإضافة شمال */}
       <Card variant="card" className="flex w-full shrink-0 flex-col gap-1.5 p-5">
-        <div className="flex h-[42px] w-full items-center justify-between gap-4">
+        <div className="flex w-full flex-col justify-between gap-4 md:h-[42px] md:flex-row md:items-center">
           <h2 className="min-w-0 flex-1 text-right text-lg font-extrabold text-ink">
             {PAYMENTS_HEADER.title}
           </h2>
@@ -29,7 +29,7 @@ export default function PaymentMethods() {
       </Card>
 
       {/* شبكة الكروت — node 7:1843: عمودين بعرض 554 وجاب 24 */}
-      <div className="grid w-full shrink-0 grid-cols-2 items-start gap-6">
+      <div className="grid w-full shrink-0 grid-cols-1 items-start gap-6 md:grid-cols-2">
         {PAYMENT_METHODS.map((m) => (
           <MethodCard key={m.id} method={m} />
         ))}

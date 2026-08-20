@@ -83,6 +83,7 @@ export default function Specializations() {
       columns={COLUMNS}
       rows={SPECIALIZATIONS}
       rowKey={(r) => r.id}
+      tableClassName="min-w-[850px]"
     />
   )
 }

@@ -110,6 +110,7 @@ export default function Terms() {
       columns={COLUMNS}
       rows={TERMS}
       rowKey={(r) => r.id}
+      tableClassName="min-w-[700px]"
     >
       <Card className="w-full shrink-0 overflow-hidden">
         <CardHeader title="الكورسات المرتبطة بالترمات" />
@@ -117,6 +118,7 @@ export default function Terms() {
           columns={LINKED_COLUMNS}
           rows={TERM_LINKED_COURSES}
           rowKey={(r) => r.id}
+          className="min-w-[650px]"
         />
       </Card>
     </AcademicListScreen>

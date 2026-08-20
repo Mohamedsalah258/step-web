@@ -1,5 +1,5 @@
 import { Download, FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/States'
 import {
@@ -76,8 +76,8 @@ export function CourseNotesTabShell({
       counts={counts}
       courseId={courseId}
     >
-      <div className="flex w-full shrink-0 items-start gap-4">
-        <Card className="flex min-w-0 flex-1 flex-col self-start overflow-hidden">
+      <div className="flex w-full shrink-0 flex-col gap-4 lg:flex-row lg:items-start">
+        <Card className="flex min-w-0 flex-1 flex-col overflow-hidden lg:self-start">
           <CardHeader title={SUMMARIES_LIST_TITLE} />
           {summaries.length === 0 ? (
             <EmptyState
@@ -109,10 +109,12 @@ export function CourseNotesTabShell({
 
 /** فيجما frame: v3-course-notes-tab (node 13:506) */
 export default function CourseNotesTab() {
+  const { id = '1' } = useParams()
   return (
     <CourseNotesTabShell
       summaries={COURSE_SUMMARIES}
       counts={COURSE_TAB_COUNTS}
+      courseId={id}
     />
   )
 }

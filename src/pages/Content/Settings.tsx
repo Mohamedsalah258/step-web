@@ -13,7 +13,7 @@ export default function Settings() {
   return (
     <Page title={SETTINGS_PAGE_TITLE}>
       {/* RTL: كارت الملف الشخصي يمين (فيجما x=578) وكارت كلمة المرور يسار (x=0) */}
-      <div className="flex w-full shrink-0 items-start gap-6">
+      <div className="flex w-full shrink-0 flex-col gap-6 lg:flex-row lg:items-start">
         {/* بيانات الملف الشخصي — node 7:2685 */}
         <Card className="flex min-w-0 flex-1 flex-col gap-6 p-8">
           <h2 className="text-right text-xl font-extrabold text-ink">

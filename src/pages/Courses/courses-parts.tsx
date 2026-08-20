@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import {
   Download,
   FileText,
+  ImageIcon,
   Pencil,
   Trash2,
   UploadCloud,
@@ -32,18 +33,10 @@ import {
 export function CourseHeader({ courseId = '1' }: { courseId?: string }) {
   return (
     <Card className="w-full shrink-0 p-5">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex shrink-0 flex-col items-end gap-3">
-          <Link
-            to={`/courses/${courseId}/edit`}
-            className="inline-flex h-[38px] items-center gap-2 rounded-ctl border border-line bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-surface"
-          >
-            <Pencil className="size-3.5" strokeWidth={2.5} />
-            {COURSE_DETAIL.editLabel}
-          </Link>
-          <span className="mono text-sm font-bold text-brand">
-            {COURSE_DETAIL.price}
-          </span>
+      <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-start">
+        {/* غلاف الكورس — بلوك بديل لحد ما يتوفر غلاف حقيقي (قرار #7) */}
+        <div className="hidden h-[104px] w-[140px] shrink-0 items-center justify-center overflow-hidden rounded-panel border border-line bg-surface sm:flex">
+          <ImageIcon className="size-8 text-line" strokeWidth={1.5} />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col items-end gap-2">
@@ -57,6 +50,19 @@ export function CourseHeader({ courseId = '1' }: { courseId?: string }) {
           <p className="text-right text-base leading-relaxed text-muted">
             {COURSE_DETAIL.description}
           </p>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-3">
+          <Link
+            to={`/courses/${courseId}/edit`}
+            className="inline-flex h-[38px] items-center gap-2 rounded-ctl border border-line bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-surface"
+          >
+            <Pencil className="size-3.5" strokeWidth={2.5} />
+            {COURSE_DETAIL.editLabel}
+          </Link>
+          <span className="mono text-sm font-bold text-brand">
+            {COURSE_DETAIL.price}
+          </span>
         </div>
       </div>
     </Card>
@@ -185,7 +191,7 @@ export function AddForm({
   notice?: string
 }) {
   return (
-    <Card className="flex w-[380px] shrink-0 flex-col self-start">
+    <Card className="flex w-full shrink-0 flex-col self-start lg:w-[380px]">
       <CardHeader title={title} />
       <div className="flex flex-col gap-4 p-5">
         {children}
@@ -229,7 +235,7 @@ export function ListCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="flex min-w-0 flex-1 flex-col self-start overflow-hidden">
+    <Card className="flex min-w-0 flex-1 flex-col overflow-hidden lg:self-start">
       <CardHeader
         title={title}
         actions={

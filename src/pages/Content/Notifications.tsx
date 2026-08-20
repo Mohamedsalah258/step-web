@@ -66,7 +66,7 @@ export default function Notifications() {
   return (
     <Page title="الإشعارات">
       {/* RTL: فورم الإرسال يمين (فيجما x=474) وتنبيهات السيستم يسار (x=0) */}
-      <div className="flex w-full shrink-0 items-start gap-6">
+      <div className="flex w-full shrink-0 flex-col gap-6 lg:flex-row lg:items-start">
         <PanelCard className="min-w-0 flex-1">
           <PanelHeader icon={Plus} title={NOTIFY_FORM.cardTitle} />
 
@@ -75,7 +75,7 @@ export default function Notifications() {
             placeholder={NOTIFY_FORM.titlePlaceholder}
           />
 
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <SelectField
               className="min-w-0 flex-1"
               label={NOTIFY_FORM.audienceLabel}
@@ -93,7 +93,7 @@ export default function Notifications() {
             <span className="text-right text-sm font-bold text-ink">
               {NOTIFY_FORM.targetingLabel}
             </span>
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <SelectField
                 className="min-w-0 flex-1"
                 label={NOTIFY_FORM.courseLabel}
@@ -105,7 +105,7 @@ export default function Notifications() {
                 options={NOTIFY_FORM.targetingOptions}
               />
             </div>
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <SelectField
                 className="min-w-0 flex-1"
                 label={NOTIFY_FORM.termLabel}
@@ -125,7 +125,7 @@ export default function Notifications() {
         </PanelCard>
 
         {/* تنبيهات الإدارة والسيستم — node 7:2033 */}
-        <PanelCard className="w-[450px] shrink-0">
+        <PanelCard className="w-full shrink-0 lg:w-[450px]">
           <PanelHeader icon={Bell} title={ALERTS_CARD_TITLE} />
           <div className="flex flex-col gap-3">
             {ADMIN_ALERTS.map((a) => (
@@ -155,6 +155,7 @@ export default function Notifications() {
           columns={HISTORY_COLUMNS}
           rows={SENT_NOTIFICATIONS}
           rowKey={(r) => r.id}
+          className="min-w-[800px]"
         />
       </Card>
     </Page>

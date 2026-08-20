@@ -166,7 +166,7 @@ export function DonutChart({
   let offset = 0
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex flex-col items-center gap-6 sm:flex-row">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle

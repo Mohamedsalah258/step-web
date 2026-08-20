@@ -79,4 +79,13 @@
       transform: translateX(100%);
     }
   }
+
+  /* إخفاء شريط التمرير مع الحفاظ على إمكانية التمرير — للتابس وصفوف الفلاتر */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

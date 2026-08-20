@@ -95,6 +95,7 @@ export default function ReportStudents() {
           columns={COLUMNS}
           rows={STUDENT_ROWS}
           rowKey={(r) => r.faculty}
+          className="min-w-[1050px]"
         />
       </Card>
 

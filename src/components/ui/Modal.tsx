@@ -42,7 +42,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-navy/40 p-6"
+      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-navy/40 p-4"
       onClick={close}
       role="presentation"
     >
@@ -51,9 +51,9 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        style={{ width }}
+        style={{ maxWidth: width }}
         className={cn(
-          'flex max-h-[calc(100vh-48px)] animate-scale-in flex-col gap-6 overflow-y-auto rounded-panel bg-white p-8 shadow-modal',
+          'flex max-h-[calc(100vh-32px)] w-[calc(100%-32px)] animate-scale-in flex-col gap-4 overflow-y-auto rounded-panel bg-white p-5 shadow-modal md:max-h-[calc(100vh-48px)] md:gap-6 md:p-8',
           className,
         )}
       >
@@ -82,8 +82,12 @@ export function Modal({
             <div className="h-px w-full shrink-0 bg-line" />
             {/* فيجما node 2003:4056: «إلغاء» على الشمال و«تأكيد» على اليمين.
                 flex-row-reverse بيرجّع الترتيب لـ LTR جوّه صفحة RTL،
-                فبنمرّر (إلغاء ثم تأكيد) وتطلع في مكانها الصح. */}
-            <div className="flex flex-row-reverse shrink-0 gap-3">{actions}</div>
+                فبنمرّر (إلغاء ثم تأكيد) وتطلع في مكانها الصح.
+                على الموبايل (< sm) الأزرار بتتكوّم عمودي، وflex-col-reverse
+                بيخلّي زرار التأكيد فوق (أول حاجة الإصبع يوصلها) والإلغاء تحته. */}
+            <div className="flex shrink-0 flex-col-reverse gap-3 sm:flex-row-reverse">
+              {actions}
+            </div>
           </>
         ) : null}
       </div>

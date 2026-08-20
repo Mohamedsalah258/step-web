@@ -536,6 +536,8 @@ export const ADD_COURSE_MODAL = {
   typeOptions: ['مدفوع', 'مجاني'],
   coverLabel: 'صورة الكورس',
   coverHint: 'اسحب الصورة أو تصفح الملفات',
+  orderLabel: 'ترتيب الكورس',
+  orderPlaceholder: 'مثال: 1',
   statusLabel: 'حالة الكورس الأولى',
   statusOptions: ['منشور', 'مسوّدة'],
   submit: 'إضافة الكورس',

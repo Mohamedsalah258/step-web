@@ -84,6 +84,7 @@ export default function Stages() {
       columns={COLUMNS}
       rows={STAGES}
       rowKey={(r) => r.id}
+      tableClassName="min-w-[850px]"
     />
   )
 }
