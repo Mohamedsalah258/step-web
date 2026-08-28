@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { TextArea, TextField } from '@/components/ui/Field'
+import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/cn'
-import { POLICY_TABS, POLICY_TOOLBAR, type PolicyDoc } from '@/data/content'
+import type { ApiPolicy } from '@/api/policies'
+import { POLICY_TABS, POLICY_TOOLBAR } from '@/data/content'
 
 /**
  * هيدر كارت بأيقونة — فيجما node 7:2034 / 7:2060:
@@ -71,13 +75,42 @@ export function PolicyTabs() {
 
 /**
  * محرّر السياسات — فيجما nodes 7:2402 / 45:27 / 45:159:
- * شريط أدوات فوق، منطقة نص bg-surface (min-h 380)، وفوتر فيه تاريخ التعديل
- * والزر على اليمين والملاحظة على اليسار.
+ * شريط أدوات فوق (تنسيق زخرفي بس — التخزين نص عادي)، عنوان + محتوى قابلين
+ * للتعديل فعليًا، وفوتر فيه تاريخ آخر تعديل والزر على اليمين.
  */
-export function PolicyEditor({ doc }: { doc: PolicyDoc }) {
+export function PolicyEditor({
+  doc,
+  onSave,
+}: {
+  doc: ApiPolicy
+  onSave: (heading: string, content: string) => Promise<void>
+}) {
+  const [heading, setHeading] = useState(doc.heading)
+  const [content, setContent] = useState(doc.content)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setHeading(doc.heading)
+    setContent(doc.content)
+  }, [doc])
+
+  const handleSave = async () => {
+    if (!heading.trim() || !content.trim()) return
+    setSaving(true)
+    setError(null)
+    try {
+      await onSave(heading, content)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <Card className="flex w-full shrink-0 flex-col gap-5 p-6">
-      {/* toolbar — node 7:2403، أول مجموعة على اليمين */}
+      {/* toolbar — node 7:2403، زخرفي (النص بيتخزن عادي، مفيش رندر HTML حقيقي) */}
       <div className="flex shrink-0 items-center gap-3 rounded-ctl bg-surface p-2">
         {POLICY_TOOLBAR.map((group, gi) => (
           <div key={group.join('')} className="flex items-center gap-3">
@@ -87,7 +120,8 @@ export function PolicyEditor({ doc }: { doc: PolicyDoc }) {
                 <button
                   key={key}
                   type="button"
-                  className="num flex size-7 items-center justify-center rounded border border-line bg-white text-xs font-bold text-ink transition-colors hover:bg-brand-wash"
+                  disabled
+                  className="num flex size-7 items-center justify-center rounded border border-line bg-white text-xs font-bold text-muted opacity-50"
                 >
                   {key}
                 </button>
@@ -97,24 +131,27 @@ export function PolicyEditor({ doc }: { doc: PolicyDoc }) {
         ))}
       </div>
 
-      {/* textarea — node 7:2427 */}
-      <div className="flex min-h-[380px] w-full flex-col gap-4 rounded-ctl border border-line bg-surface p-6 text-right">
-        <p className="text-[18px] font-extrabold text-ink">{doc.heading}</p>
-        {doc.paragraphs.map((p) => (
-          <p key={p} className="text-base leading-[26px] text-ink">
-            {p}
-          </p>
-        ))}
-      </div>
+      <TextField label="عنوان الصفحة" value={heading} onChange={setHeading} />
 
-      {/* editor-footer — node 7:2433: التاريخ والزر يمين، الملاحظة يسار */}
+      {/* textarea — node 7:2427 */}
+      <TextArea label="محتوى الصفحة" value={content} onChange={setContent} rows={14} />
+
+      {/* editor-footer — node 7:2433 */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted">{doc.lastModified}</span>
-          <Button>{doc.save}</Button>
+          <span className="text-sm text-muted">
+            آخر تعديل: {formatDateTime(doc.updatedAt)}
+            {doc.updatedByAdminName ? ` بواسطة ${doc.updatedByAdminName}` : ''}
+          </span>
+          <Button onClick={handleSave} disabled={saving || !heading.trim() || !content.trim()}>
+            {saving ? '...جاري الحفظ' : 'حفظ التغييرات ونشرها'}
+          </Button>
         </div>
-        <span className="text-sm text-muted">{doc.footnote}</span>
+        <span className="text-sm text-muted">
+          * هذا المحتوى يظهر تلقائياً للطالب في شاشة المتجر والسياسات بقسم المزيد بالتطبيق.
+        </span>
       </div>
+      {error ? <p className="text-sm font-bold text-danger">{error}</p> : null}
     </Card>
   )
 }

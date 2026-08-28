@@ -9,6 +9,8 @@ type Props = {
   /** بدون padding داخلي لو الصفحة عايزة تتحكم بنفسها */
   bare?: boolean
   className?: string
+  /** بيتمرر لـ <Outlet context={...}> — المودالز المتفرّعة تقراه بـ useOutletContext() */
+  outletContext?: unknown
 }
 
 /**
@@ -17,7 +19,7 @@ type Props = {
  * الـ <Outlet /> في الآخر هو اللي بيرسم المودالز المتفرّعة من مسار الصفحة
  * (كل مودال في فيجما = فريم فوق شاشته الأصلية = child route هنا).
  */
-export function Page({ title, actions, children, bare, className }: Props) {
+export function Page({ title, actions, children, bare, className, outletContext }: Props) {
   return (
     <>
       <TopBar title={title} actions={actions} />
@@ -30,7 +32,7 @@ export function Page({ title, actions, children, bare, className }: Props) {
       >
         {children}
       </div>
-      <Outlet />
+      <Outlet context={outletContext} />
     </>
   )
 }

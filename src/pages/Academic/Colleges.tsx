@@ -1,8 +1,13 @@
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Settings } from 'lucide-react'
 import { ButtonLink, IconButton } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/Badge'
 import { RowActions, type Column } from '@/components/ui/Table'
-import { COLLEGES, type College } from '@/data/academic'
+import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
+import { formatArabicCount } from '@/lib/format'
+import { listColleges, type ApiCollegeRow } from '@/api/academic'
 import {
   AcademicListScreen,
   NameLink,
@@ -12,12 +17,11 @@ import {
 
 const CRUMBS: Crumb[] = [
   { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
-  { label: 'جامعة القاهرة', to: '/academic/universities' },
-  { label: 'كليات جامعة القاهرة' },
+  { label: 'الكليات' },
 ]
 
 /** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 29:519) */
-const COLUMNS: Column<College>[] = [
+const COLUMNS: Column<ApiCollegeRow>[] = [
   {
     key: 'index',
     header: '#',
@@ -29,20 +33,20 @@ const COLUMNS: Column<College>[] = [
     header: 'اسم الكلية',
     flex: true,
     render: (r) => (
-      <NameLink to="/academic/specializations">{r.name}</NameLink>
+      <NameLink to={`/academic/specializations?parentId=${r.id}`}>{r.name}</NameLink>
     ),
   },
   {
     key: 'departments',
     header: 'عدد الأقسام',
     width: 150,
-    render: (r) => <NumCell>{r.departments}</NumCell>,
+    render: (r) => <NumCell>{formatArabicCount(r.departments, 'قسم', 'أقسام')}</NumCell>,
   },
   {
     key: 'courses',
     header: 'عدد الكورسات',
     width: 150,
-    render: (r) => <NumCell>{r.courses}</NumCell>,
+    render: (r) => <NumCell>{formatArabicCount(r.courses, 'كورس', 'كورسات')}</NumCell>,
   },
   {
     key: 'status',
@@ -55,9 +59,14 @@ const COLUMNS: Column<College>[] = [
     header: 'إجراءات',
     width: 80,
     align: 'center',
-    render: () => (
+    render: (r) => (
       <RowActions>
-        <IconButton icon={Settings} label="إعدادات الكلية" tone="brand" />
+        <IconButton
+          icon={Settings}
+          label="إعدادات الكلية"
+          tone="brand"
+          to={`/academic/colleges/${r.id}/edit`}
+        />
       </RowActions>
     ),
   },
@@ -65,10 +74,18 @@ const COLUMNS: Column<College>[] = [
 
 /** فيجما frame: v3-academic-colleges (node 29:490) */
 export default function Colleges() {
+  const [params] = useSearchParams()
+  const universityId = params.get('parentId') ?? undefined
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data, loading, error, reload } = useAsync(
+    () => listColleges({ parentId: universityId }),
+    [universityId, refreshKey],
+  )
+
   return (
     <AcademicListScreen
       pageTitle="إدارة كليات الجامعة"
-      heading="كليات جامعة القاهرة"
+      heading={universityId ? 'كليات الجامعة المختارة' : 'كل الكليات'}
       breadcrumb={CRUMBS}
       actions={
         /* action-group — فيجما: زرار الإضافة أقصى الشمال والعودة يمينه،
@@ -86,10 +103,20 @@ export default function Colleges() {
           </ButtonLink>
         </>
       }
+      outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
       columns={COLUMNS}
-      rows={COLLEGES}
+      rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[800px]"
+      empty={
+        error ? (
+          <ErrorState description={error} onRetry={reload} />
+        ) : !data && loading ? (
+          <TableSkeleton rows={4} cols={5} />
+        ) : (
+          <EmptyState title="لا يوجد كليات مضافة بعد" description="ابدأ بإضافة أول كلية." />
+        )
+      }
     />
   )
 }

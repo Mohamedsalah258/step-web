@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Page } from '@/components/layout/Page'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -59,6 +59,8 @@ export function AcademicListScreen<T>({
   rowKey,
   tableClassName,
   children,
+  outletContext,
+  empty,
 }: {
   pageTitle: string
   heading: string
@@ -71,9 +73,12 @@ export function AcademicListScreen<T>({
   tableClassName?: string
   /** أقسام إضافية بعد كارت الجدول (زي linked-courses في شاشة الترمات) */
   children?: React.ReactNode
+  /** بيتمرر لمودالز الإضافة المتفرّعة (زي onDataChanged بعد نجاح الإضافة) */
+  outletContext?: unknown
+  empty?: React.ReactNode
 }) {
   return (
-    <Page title={pageTitle}>
+    <Page title={pageTitle} outletContext={outletContext}>
       <AcademicHeader
         heading={heading}
         breadcrumb={breadcrumb}
@@ -85,6 +90,7 @@ export function AcademicListScreen<T>({
           rows={rows}
           rowKey={rowKey}
           className={tableClassName}
+          empty={empty}
         />
       </Card>
       {children}
@@ -148,11 +154,16 @@ export function PillButton({
 }
 
 /** عمود الإجراءات في شاشات التخصصات/المراحل/الترمات — RTL: تعديل يمين وحذف شمال */
-export function EditDeletePills() {
+export function EditDeletePills({ editTo, deleteTo }: { editTo: string; deleteTo: string }) {
+  const navigate = useNavigate()
   return (
     <RowActions>
-      <PillButton tone="brand">تعديل</PillButton>
-      <PillButton tone="danger">حذف</PillButton>
+      <PillButton tone="brand" onClick={() => navigate(editTo)}>
+        تعديل
+      </PillButton>
+      <PillButton tone="danger" onClick={() => navigate(deleteTo)}>
+        حذف
+      </PillButton>
     </RowActions>
   )
 }

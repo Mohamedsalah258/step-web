@@ -11,10 +11,15 @@ export function SearchField({
   placeholder = 'بحث...',
   className,
   width,
+  value,
+  onChange,
 }: {
   placeholder?: string
   className?: string
   width?: number
+  /** لو اتمرر، الحقل بيبقى controlled (شوف StudentsList لمثال حقيقي) */
+  value?: string
+  onChange?: (value: string) => void
 }) {
   return (
     <div
@@ -28,6 +33,8 @@ export function SearchField({
       <input
         type="search"
         placeholder={placeholder}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className="min-w-0 flex-1 bg-transparent text-right text-base text-ink outline-none placeholder:text-muted"
       />
       <Search className="size-4 shrink-0 text-muted" strokeWidth={2} />
@@ -41,11 +48,16 @@ export function FilterSelect({
   options = [],
   className,
   width,
+  value,
+  onChange,
 }: {
   label: string
   options?: string[]
   className?: string
   width?: number
+  /** لو اتمرر، الحقل بيبقى controlled */
+  value?: string
+  onChange?: (value: string) => void
 }) {
   return (
     <div
@@ -56,7 +68,9 @@ export function FilterSelect({
       style={width ? { maxWidth: width } : undefined}
     >
       <select
-        defaultValue=""
+        value={onChange ? (value ?? '') : undefined}
+        defaultValue={onChange ? undefined : ''}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         className="h-full w-full cursor-pointer appearance-none bg-transparent ps-4 pe-9 text-right text-base text-ink outline-none"
       >
         <option value="">{label}</option>
@@ -79,11 +93,35 @@ export function DateField({
   label = 'التاريخ',
   className,
   width,
+  value,
+  onChange,
 }: {
   label?: string
   className?: string
   width?: number
+  /** لو اتمرر، الحقل بيبقى date-picker حقيقي (قيمة YYYY-MM-DD) */
+  value?: string
+  onChange?: (value: string) => void
 }) {
+  if (onChange) {
+    return (
+      <div
+        className={cn(
+          'relative flex h-[42px] w-full shrink-0 items-center rounded-ctl border border-line bg-white px-4 sm:w-auto',
+          className,
+        )}
+        style={width ? { maxWidth: width } : undefined}
+      >
+        <input
+          type="date"
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-w-0 flex-1 bg-transparent text-right text-base text-ink outline-none [color-scheme:light]"
+        />
+        <Calendar className="pointer-events-none size-4 shrink-0 text-muted" strokeWidth={2} />
+      </div>
+    )
+  }
   return (
     <div
       className={cn(
@@ -109,6 +147,7 @@ export function TextField({
   type = 'text',
   className,
   mono,
+  onChange,
 }: {
   label: string
   placeholder?: string
@@ -117,13 +156,17 @@ export function TextField({
   type?: string
   className?: string
   mono?: boolean
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
 }) {
   return (
     <label className={cn('flex flex-col gap-1.5', className)}>
       <span className="text-right text-sm font-bold text-ink">{label}</span>
       <input
         type={type}
-        defaultValue={value}
+        value={onChange ? value : undefined}
+        defaultValue={onChange ? undefined : value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         className={cn(
           'h-[42px] w-full rounded-ctl border border-line bg-white px-4 text-right text-base text-ink outline-none transition-colors placeholder:text-muted focus:border-brand',
@@ -141,11 +184,14 @@ export function SelectField({
   label,
   options,
   value,
+  onChange,
   className,
 }: {
   label: string
   options: string[]
   value?: string
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
   className?: string
 }) {
   return (
@@ -153,7 +199,9 @@ export function SelectField({
       <span className="text-right text-sm font-bold text-ink">{label}</span>
       <div className="relative">
         <select
-          defaultValue={value}
+          value={onChange ? value : undefined}
+          defaultValue={onChange ? undefined : value}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className="h-[42px] w-full cursor-pointer appearance-none rounded-ctl border border-line bg-white ps-4 pe-9 text-right text-base text-ink outline-none transition-colors focus:border-brand"
         >
           {options.map((o) => (
@@ -177,19 +225,24 @@ export function TextArea({
   value,
   rows = 4,
   className,
+  onChange,
 }: {
   label: string
   placeholder?: string
   value?: string
   rows?: number
   className?: string
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
 }) {
   return (
     <label className={cn('flex flex-col gap-1.5', className)}>
       <span className="text-right text-sm font-bold text-ink">{label}</span>
       <textarea
         rows={rows}
-        defaultValue={value}
+        value={onChange ? value : undefined}
+        defaultValue={onChange ? undefined : value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         className="w-full resize-y rounded-ctl border border-line bg-white px-4 py-3 text-right text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-muted focus:border-brand"
       />
@@ -202,11 +255,18 @@ export function ToggleRow({
   label,
   hint,
   defaultOn,
+  on,
+  onChange,
+  disabled,
   className,
 }: {
   label: string
   hint?: string
   defaultOn?: boolean
+  /** لو اتمرر، السويتش بيبقى controlled بالكامل */
+  on?: boolean
+  onChange?: (on: boolean) => void
+  disabled?: boolean
   className?: string
 }) {
   return (
@@ -217,7 +277,7 @@ export function ToggleRow({
         <span className="text-base font-bold text-ink">{label}</span>
         {hint ? <span className="text-2xs text-muted">{hint}</span> : null}
       </div>
-      <Switch defaultOn={defaultOn} />
+      <Switch defaultOn={defaultOn} on={on} onChange={onChange} disabled={disabled} />
     </div>
   )
 }
@@ -226,15 +286,21 @@ export function ToggleRow({
 export function Checkbox({
   label,
   defaultOn,
+  on,
+  onChange,
 }: {
   label: string
   defaultOn?: boolean
+  /** لو اتمرر، الحقل بيبقى controlled */
+  on?: boolean
+  onChange?: (on: boolean) => void
 }) {
   return (
     <label className="flex cursor-pointer items-center gap-2.5">
       <input
         type="checkbox"
-        defaultChecked={defaultOn}
+        {...(onChange ? { checked: on ?? false } : { defaultChecked: defaultOn })}
+        onChange={onChange ? (e) => onChange(e.target.checked) : undefined}
         className="size-[18px] shrink-0 cursor-pointer accent-brand"
       />
       <span className="text-base text-ink">{label}</span>

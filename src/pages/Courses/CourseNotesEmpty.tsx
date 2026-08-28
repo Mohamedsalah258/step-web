@@ -1,7 +1,6 @@
-import { COURSE_TAB_COUNTS_EMPTY } from '@/data/courses'
-import { CourseNotesShell } from './CourseNotes'
+import CourseNotes from './CourseNotes'
 
-/** فيجما frame: v3-course-notes-empty (node 2009:5140) */
+/** فيجما frame: v3-course-notes-empty (node 2009:5140) — بقت نفس الصفحة الحقيقية */
 export default function CourseNotesEmpty() {
-  return <CourseNotesShell notes={[]} counts={COURSE_TAB_COUNTS_EMPTY} />
+  return <CourseNotes />
 }

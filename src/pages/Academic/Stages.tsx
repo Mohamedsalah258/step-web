@@ -1,8 +1,13 @@
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/Badge'
 import { type Column } from '@/components/ui/Table'
-import { STAGES, type Stage } from '@/data/academic'
+import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
+import { formatArabicCount } from '@/lib/format'
+import { listStages, type ApiStageRow } from '@/api/academic'
 import {
   AcademicListScreen,
   EditDeletePills,
@@ -13,14 +18,12 @@ import {
 
 const CRUMBS: Crumb[] = [
   { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
-  { label: 'جامعة القاهرة', to: '/academic/universities' },
-  { label: 'كلية الطب', to: '/academic/colleges' },
-  { label: 'الطب العام', to: '/academic/specializations' },
+  { label: 'التخصصات', to: '/academic/specializations' },
   { label: 'المراحل' },
 ]
 
 /** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 29:810) */
-const COLUMNS: Column<Stage>[] = [
+const COLUMNS: Column<ApiStageRow>[] = [
   {
     key: 'index',
     header: '#',
@@ -31,19 +34,19 @@ const COLUMNS: Column<Stage>[] = [
     key: 'name',
     header: 'اسم المرحلة',
     flex: true,
-    render: (r) => <NameLink to="/academic/terms">{r.name}</NameLink>,
+    render: (r) => <NameLink to={`/academic/terms?parentId=${r.id}`}>{r.name}</NameLink>,
   },
   {
     key: 'terms',
     header: 'عدد الترمات',
     width: 150,
-    render: (r) => <NumCell>{r.terms}</NumCell>,
+    render: (r) => <NumCell>{formatArabicCount(r.terms, 'ترم', 'ترمات')}</NumCell>,
   },
   {
     key: 'courses',
     header: 'عدد الكورسات',
     width: 150,
-    render: (r) => <NumCell>{r.courses}</NumCell>,
+    render: (r) => <NumCell>{formatArabicCount(r.courses, 'كورس', 'كورسات')}</NumCell>,
   },
   {
     key: 'status',
@@ -56,16 +59,29 @@ const COLUMNS: Column<Stage>[] = [
     header: 'إجراءات',
     width: 120,
     align: 'center',
-    render: () => <EditDeletePills />,
+    render: (r) => (
+      <EditDeletePills
+        editTo={`/academic/stages/${r.id}/edit`}
+        deleteTo={`/academic/stages/${r.id}/delete`}
+      />
+    ),
   },
 ]
 
 /** فيجما frame: v3-academic-stages (node 29:772) */
 export default function Stages() {
+  const [params] = useSearchParams()
+  const specializationId = params.get('parentId') ?? undefined
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data, loading, error, reload } = useAsync(
+    () => listStages({ parentId: specializationId }),
+    [specializationId, refreshKey],
+  )
+
   return (
     <AcademicListScreen
       pageTitle="إدارة المراحل الدراسية"
-      heading="مراحل الطب العام"
+      heading={specializationId ? 'مراحل التخصص المختار' : 'كل المراحل'}
       breadcrumb={CRUMBS}
       actions={
         <>
@@ -74,17 +90,27 @@ export default function Stages() {
             variant="secondary"
             icon={ArrowLeft}
           >
-            العودة لتخصصات كلية الطب
+            العودة للتخصصات
           </ButtonLink>
           <ButtonLink to="/academic/stages/add" icon={Plus}>
             إضافة مرحلة
           </ButtonLink>
         </>
       }
+      outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
       columns={COLUMNS}
-      rows={STAGES}
+      rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[850px]"
+      empty={
+        error ? (
+          <ErrorState description={error} onRetry={reload} />
+        ) : !data && loading ? (
+          <TableSkeleton rows={4} cols={5} />
+        ) : (
+          <EmptyState title="لا يوجد مراحل مضافة بعد" description="ابدأ بإضافة أول مرحلة." />
+        )
+      }
     />
   )
 }

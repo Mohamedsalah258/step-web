@@ -1,25 +1,24 @@
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { Activity, CheckCircle2, CreditCard } from 'lucide-react'
 import { Page } from '@/components/layout/Page'
 import { Card } from '@/components/ui/Card'
-import { StatRow } from '@/components/ui/StatCard'
+import { StatRow, type Stat } from '@/components/ui/StatCard'
 import { DataTable, Truncate, type Column } from '@/components/ui/Table'
 import { ProgressBar } from '@/components/ui/Misc'
+import { CardSkeleton, ErrorState, TableSkeleton } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
+import { formatArabicCount, formatEGP, formatNumber } from '@/lib/format'
+import { getRevenueReport } from '@/api/reports'
+import { REVENUE_CHART_TITLE } from '@/data/reports'
 import {
-  REVENUE_BY_FACULTY,
-  REVENUE_CHART_TITLE,
-  REVENUE_PREVIEWS,
-  REVENUE_ROWS,
-  REVENUE_STATS,
-  type RevenueRow,
-} from '@/data/reports'
-import {
+  DeltaBadge,
   ReportChartCard,
   ReportFilters,
-  ReportPreviews,
   ReportTabs,
+  useReportFilters,
 } from './reports-parts'
 
-/** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 37:1141) */
+type RevenueRow = { faculty: string; orders: number; revenue: number; share: number; delta: number | null }
+
 const COLUMNS: Column<RevenueRow>[] = [
   {
     key: 'faculty',
@@ -34,26 +33,25 @@ const COLUMNS: Column<RevenueRow>[] = [
   {
     key: 'orders',
     header: 'عدد الطلبات',
-    width: 150,
-    render: (r) => <span className="mono text-muted">{r.orders}</span>,
+    width: 140,
+    render: (r) => <span className="mono text-muted">{formatArabicCount(r.orders, 'طلب', 'طلبات')}</span>,
   },
   {
     key: 'revenue',
     header: 'الإيراد (ج.م)',
-    width: 180,
-    render: (r) => <span className="mono font-bold text-ink">{r.revenue}</span>,
+    width: 160,
+    render: (r) => <span className="mono font-bold text-ink">{formatNumber(r.revenue)}</span>,
   },
   {
     key: 'share',
     header: 'النسبة',
-    width: 240,
-    // فيجما: الشريط 180px على الشمال من النص — RTL: الشريط أول عنصر في الـ DOM
+    width: 220,
     render: (r) => (
       <div className="flex w-full items-center gap-3">
-        <div className="w-[180px] shrink-0">
+        <div className="w-[150px] shrink-0">
           <ProgressBar value={r.share} />
         </div>
-        <span className="num text-sm text-muted">{r.shareLabel}</span>
+        <span className="num text-sm text-muted">{r.share}%</span>
       </div>
     ),
   },
@@ -61,42 +59,76 @@ const COLUMNS: Column<RevenueRow>[] = [
     key: 'delta',
     header: 'مقارنة',
     width: 120,
-    render: (r) => (
-      <div className="flex items-center gap-1">
-        {r.up ? (
-          <ArrowUp className="size-3 shrink-0 text-success" strokeWidth={2.5} />
-        ) : (
-          <ArrowDown className="size-3 shrink-0 text-danger" strokeWidth={2.5} />
-        )}
-        <span
-          className={`num text-sm font-bold ${r.up ? 'text-success' : 'text-danger'}`}
-        >
-          {r.delta}
-        </span>
-      </div>
-    ),
+    render: (r) => <DeltaBadge delta={r.delta} />,
   },
 ]
 
 /** فيجما frame: v3-reports-full (node 37:1035) */
 export default function ReportsOverview() {
+  const [filters, setFilters] = useReportFilters()
+  const { data, loading, error, reload } = useAsync(
+    () => getRevenueReport(filters),
+    [filters.from, filters.to, filters.compare],
+  )
+
+  const stats: Stat[] = data
+    ? [
+        {
+          label: 'إجمالي الإيراد',
+          value: formatEGP(data.totalRevenue),
+          icon: Activity,
+          mono: true,
+          note: data.revenueDelta !== null ? `${data.revenueDelta >= 0 ? '+' : ''}${data.revenueDelta}% مقارنة بالفترة السابقة` : undefined,
+          noteTone: data.revenueDelta !== null ? (data.revenueDelta >= 0 ? 'success' : 'danger') : undefined,
+          trend: data.revenueDelta !== null ? (data.revenueDelta >= 0 ? 'up' : 'down') : undefined,
+        },
+        {
+          label: 'متوسط قيمة الطلب',
+          value: formatEGP(data.avgOrderValue),
+          note: 'لجميع الكورسات والكليات',
+          icon: CreditCard,
+          mono: true,
+        },
+        {
+          label: 'طلبات تمت الموافقة عليها',
+          value: formatArabicCount(data.approvedOrdersCount, 'طلب', 'طلب'),
+          icon: CheckCircle2,
+          mono: true,
+          note: data.ordersDelta !== null ? `${data.ordersDelta >= 0 ? '+' : ''}${data.ordersDelta}% عن الفترة السابقة` : undefined,
+          noteTone: data.ordersDelta !== null ? (data.ordersDelta >= 0 ? 'success' : 'danger') : undefined,
+          trend: data.ordersDelta !== null ? (data.ordersDelta >= 0 ? 'up' : 'down') : undefined,
+        },
+      ]
+    : []
+
   return (
     <Page title="التقارير والإحصائيات">
       <ReportTabs />
-      <ReportFilters />
-      <StatRow stats={REVENUE_STATS} />
-      <ReportChartCard title={REVENUE_CHART_TITLE} items={REVENUE_BY_FACULTY} />
+      <ReportFilters value={filters} onChange={setFilters} report="revenue" />
 
-      <Card className="w-full shrink-0 overflow-hidden">
-        <DataTable
-          columns={COLUMNS}
-          rows={REVENUE_ROWS}
-          rowKey={(r) => r.faculty}
-          className="min-w-[950px]"
-        />
-      </Card>
+      {error ? (
+        <ErrorState description={error} onRetry={reload} />
+      ) : !data && loading ? (
+        <CardSkeleton />
+      ) : (
+        <>
+          <StatRow stats={stats} />
+          <ReportChartCard title={REVENUE_CHART_TITLE} items={data?.chart ?? []} />
 
-      <ReportPreviews rows={REVENUE_PREVIEWS} />
+          <Card className="w-full shrink-0 overflow-hidden">
+            {!data ? (
+              <TableSkeleton rows={4} cols={5} />
+            ) : (
+              <DataTable
+                columns={COLUMNS}
+                rows={data.rows}
+                rowKey={(r) => r.faculty}
+                className="min-w-[950px]"
+              />
+            )}
+          </Card>
+        </>
+      )}
     </Page>
   )
 }

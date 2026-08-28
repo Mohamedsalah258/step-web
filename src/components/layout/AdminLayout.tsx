@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
+import { useAuth } from '@/lib/useAuth'
 
 /**
  * الشِل العام — فيجما: sidebar 260px على اليمين + main-pane 1180px على الشمال.
@@ -17,6 +18,21 @@ import { Sidebar } from './Sidebar'
  */
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const auth = useAuth()
+
+  // لسه بنتحقق من التوكن المخزن (أول تحميل للصفحة) — مانورّيش الشِل ولا
+  // نحوّل لـ /login لحد ما نعرف الحالة الحقيقية.
+  if (auth.status === 'loading') {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-surface">
+        <p className="text-base font-semibold text-muted">...جارِ التحقق من الجلسة</p>
+      </div>
+    )
+  }
+
+  if (auth.status === 'unauthenticated') {
+    return <Navigate to="/login" replace />
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-surface">

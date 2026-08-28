@@ -1,7 +1,10 @@
-import { COURSES_LIST_TABS_EMPTY } from '@/data/courses'
-import { CoursesListShell } from './CoursesList'
+import CoursesList from './CoursesList'
 
-/** فيجما frame: v3-courses-list-empty (node 2009:4914) */
+/**
+ * فيجما frame: v3-courses-list-empty (node 2009:4914) — بقت نفس الصفحة
+ * الحقيقية بالحرف (زي StudentsFiltered/StudentsList) لأنها دلوقتي بتاخد
+ * بياناتها من الـ API وبتعرض EmptyState تلقائي لو فعلاً مفيش كورسات.
+ */
 export default function CoursesListEmpty() {
-  return <CoursesListShell tabs={COURSES_LIST_TABS_EMPTY} rows={[]} empty />
+  return <CoursesList />
 }

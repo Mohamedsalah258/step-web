@@ -1,6 +1,9 @@
-import { Search, Menu } from 'lucide-react'
-import { useOutletContext } from 'react-router-dom'
+import { LogOut, Menu } from 'lucide-react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { ADMIN } from '@/data/admin'
+import { useAuth } from '@/lib/useAuth'
+import { logout } from '@/lib/auth-store'
+import { uploadUrl } from '@/api/uploads'
 
 type Props = {
   title: string
@@ -22,6 +25,18 @@ type LayoutContext = {
  */
 export function TopBar({ title, actions }: Props) {
   const context = useOutletContext<LayoutContext | undefined>()
+  const navigate = useNavigate()
+  const auth = useAuth()
+
+  const adminName = auth.status === 'authenticated' ? auth.admin.name : ADMIN.name
+  const adminShortName =
+    auth.status === 'authenticated' ? auth.admin.name.trim().charAt(0) : ADMIN.shortName
+  const adminAvatarFileId = auth.status === 'authenticated' ? auth.admin.avatarFileId : null
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <header className="flex h-topbar shrink-0 items-center justify-between gap-3 border-b border-line bg-white px-4 md:px-6">
@@ -41,16 +56,22 @@ export function TopBar({ title, actions }: Props) {
         {actions}
       </div>
 
-      {/* user-profile — node 7:9: أفاتار يمين ثم البيانات ثم فاصل ثم بحث */}
+      {/* user-profile — node 7:9: أفاتار يمين ثم البيانات ثم فاصل ثم تسجيل الخروج */}
       <div className="flex shrink-0 items-center gap-3">
         <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-brand-tint">
-          <p className="text-base font-bold text-brand">{ADMIN.shortName}</p>
+          {adminAvatarFileId ? (
+            <img
+              src={uploadUrl(adminAvatarFileId)}
+              alt={adminName}
+              className="size-full object-cover"
+            />
+          ) : (
+            <p className="text-base font-bold text-brand">{adminShortName}</p>
+          )}
         </div>
         {/* الاسم والدور — مخفيين على الموبايل */}
         <div className="hidden flex-col items-end gap-0.5 whitespace-nowrap md:flex">
-          <p className="text-base font-bold leading-none text-ink">
-            {ADMIN.name}
-          </p>
+          <p className="text-base font-bold leading-none text-ink">{adminName}</p>
           <p className="text-2xs font-normal leading-none text-muted">
             {ADMIN.role}
           </p>
@@ -58,10 +79,12 @@ export function TopBar({ title, actions }: Props) {
         <div className="hidden h-5 w-px shrink-0 bg-line md:block" />
         <button
           type="button"
-          aria-label="بحث"
+          aria-label="تسجيل الخروج"
+          title="تسجيل الخروج"
+          onClick={handleLogout}
           className="flex size-5 shrink-0 items-center justify-center text-ink transition-opacity hover:opacity-60"
         >
-          <Search className="size-5" strokeWidth={2} />
+          <LogOut className="size-5" strokeWidth={2} />
         </button>
       </div>
     </header>

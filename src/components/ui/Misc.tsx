@@ -55,10 +55,13 @@ export function Pagination({
   page = 1,
   pages = 1,
   total,
+  onPageChange,
 }: {
   page?: number
   pages?: number
   total?: number
+  /** لو اتمرر، الأزرار بتبقى شغالة فعليًا (شوف StudentsList لمثال حقيقي) */
+  onPageChange?: (page: number) => void
 }) {
   const list = Array.from({ length: Math.min(pages, 5) }, (_, i) => i + 1)
   return (
@@ -67,6 +70,7 @@ export function Pagination({
         <button
           type="button"
           disabled={page <= 1}
+          onClick={() => onPageChange?.(page - 1)}
           className="h-9 rounded-ctl border border-line bg-white px-3 text-sm font-bold text-muted transition-colors hover:bg-surface disabled:opacity-40"
         >
           السابق
@@ -75,6 +79,7 @@ export function Pagination({
           <button
             key={p}
             type="button"
+            onClick={() => onPageChange?.(p)}
             className={cn(
               'num size-9 rounded-ctl text-sm font-bold transition-colors',
               p === page
@@ -88,6 +93,7 @@ export function Pagination({
         <button
           type="button"
           disabled={page >= pages}
+          onClick={() => onPageChange?.(page + 1)}
           className="h-9 rounded-ctl border border-line bg-white px-3 text-sm font-bold text-muted transition-colors hover:bg-surface disabled:opacity-40"
         >
           التالي

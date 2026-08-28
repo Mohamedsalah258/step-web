@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import { Switch } from './Switch'
 import { cn } from '@/lib/cn'
 
@@ -101,19 +101,22 @@ export function ModalButton({
   variant = 'submit',
   onClick,
   tone,
+  disabled,
 }: {
   children: React.ReactNode
   variant?: 'submit' | 'cancel'
   onClick?: () => void
   tone?: 'danger' | 'success'
+  disabled?: boolean
 }) {
   const navigate = useNavigate()
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={onClick ?? (() => navigate(-1))}
       className={cn(
-        'flex h-11 min-w-0 flex-1 items-center justify-center rounded-ctl px-6 text-base font-bold transition-colors',
+        'flex h-11 min-w-0 flex-1 items-center justify-center rounded-ctl px-6 text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         variant === 'cancel' &&
           'border border-line bg-white text-muted hover:bg-surface',
         variant === 'submit' &&
@@ -134,11 +137,14 @@ export function ModalToggleRow({
   value,
   tone = 'success',
   defaultOn = true,
+  onChange,
 }: {
   label: string
   value: string
   tone?: 'success' | 'danger'
   defaultOn?: boolean
+  /** لو اتمرر، بيتنده بالحالة الجديدة (true/false) كل ما السويتش يتغيّر */
+  onChange?: (on: boolean) => void
 }) {
   return (
     <div className="flex w-full items-center justify-between py-2">
@@ -149,12 +155,20 @@ export function ModalToggleRow({
           {value}
         </span>
       </div>
-      <Switch defaultOn={defaultOn} />
+      <Switch
+        on={onChange ? defaultOn : undefined}
+        defaultOn={defaultOn}
+        onChange={onChange}
+      />
     </div>
   )
 }
 
-/** حقل مودال — h44 p12 radius8، label 13px bold، gap6 (فيجما 2003:4045) */
+/**
+ * حقل مودال — h44 radius8، label 13px bold، gap6 (فيجما 2003:4045).
+ * ⚠️ padding عمودي فقط أفقي (px-3 لا p-3): p-3 مع h-11 بيسيب مساحة محتوى
+ * أصغر من ارتفاع سطر خط Cairo فبيقص نص الحروف رأسيًا.
+ */
 export function ModalField({
   label,
   placeholder,
@@ -162,6 +176,7 @@ export function ModalField({
   type = 'text',
   hint,
   mono,
+  onChange,
 }: {
   label: string
   placeholder?: string
@@ -169,16 +184,20 @@ export function ModalField({
   type?: string
   hint?: string
   mono?: boolean
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
 }) {
   return (
     <label className="flex w-full flex-col items-start gap-1.5">
       <span className="text-sm font-bold text-ink">{label}</span>
       <input
         type={type}
-        defaultValue={value}
+        value={onChange ? value : undefined}
+        defaultValue={onChange ? undefined : value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         className={cn(
-          'h-11 w-full rounded-ctl border border-line bg-white p-3 text-right text-base text-ink outline-none transition-colors placeholder:text-muted focus:border-brand',
+          'h-11 w-full rounded-ctl border border-line bg-white px-3 text-right text-base text-ink outline-none transition-colors placeholder:text-muted focus:border-brand',
           mono && 'num text-left',
         )}
       />
@@ -191,18 +210,33 @@ export function ModalSelect({
   label,
   options,
   value,
+  onChange,
 }: {
   label: string
   options: string[]
   value?: string
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
 }) {
   return (
     <label className="flex w-full flex-col items-start gap-1.5">
       <span className="text-sm font-bold text-ink">{label}</span>
       <select
-        defaultValue={value}
-        className="h-11 w-full rounded-ctl border border-line bg-white p-3 text-right text-base text-ink outline-none transition-colors focus:border-brand"
+        value={onChange ? value : undefined}
+        defaultValue={onChange ? undefined : value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        className="h-11 w-full rounded-ctl border border-line bg-white px-3 text-right text-base text-ink outline-none transition-colors focus:border-brand"
       >
+        {/*
+         * ⚠️ من غير option placeholder، لو الـ value الحالية '' (لسه محددتش)
+         * أو options فاضية (دروب داون متتابع لسه مستني اختيار قبله)، الـ
+         * select بيفضل من غير أي <option> يطابقها — فبيظهر فاضي تمامًا
+         * وكأنه مش شغال لما تدوس عليه. الـ option المعطلة دي بتضمن إن دايمًا
+         * فيه حاجة تتعرض، حتى لو "لا توجد خيارات متاحة".
+         */}
+        <option value="" disabled>
+          {options.length > 0 ? `اختر ${label}` : 'لا توجد خيارات متاحة حاليًا'}
+        </option>
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
@@ -218,18 +252,23 @@ export function ModalTextArea({
   placeholder,
   value,
   rows = 4,
+  onChange,
 }: {
   label: string
   placeholder?: string
   value?: string
   rows?: number
+  /** لو اتمرر، الحقل بيبقى controlled */
+  onChange?: (value: string) => void
 }) {
   return (
     <label className="flex w-full flex-col items-start gap-1.5">
       <span className="text-sm font-bold text-ink">{label}</span>
       <textarea
         rows={rows}
-        defaultValue={value}
+        value={onChange ? value : undefined}
+        defaultValue={onChange ? undefined : value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         className="w-full resize-y rounded-ctl border border-line bg-white p-3 text-right text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-muted focus:border-brand"
       />
@@ -260,5 +299,79 @@ export function ModalNotice({
     >
       {children}
     </div>
+  )
+}
+
+/**
+ * تأكيد إجراء عام — بديل لـ `window.confirm()` البدائي بتاع المتصفح، بنفس
+ * شكل مودالز تأكيد الحذف المخصصة (زي `DeleteCollegeModal`) بس من غير ما
+ * تحتاج route/صفحة منفصلة لكل حالة. استخدمه كمودال محلي (state) فوق أي
+ * صفحة أو مودال تاني — للحذف أو لأي إجراء تاني محتاج تأكيد واضح (زي تفعيل
+ * وضع الصيانة).
+ */
+export function ConfirmDeleteModal({
+  title = 'تأكيد الحذف',
+  message,
+  onConfirm,
+  onClose,
+  confirmLabel = 'تأكيد الحذف',
+  submittingLabel = '...جاري الحذف',
+  tone = 'danger',
+  submitting,
+}: {
+  title?: string
+  message: React.ReactNode
+  onConfirm: () => void
+  onClose: () => void
+  confirmLabel?: string
+  submittingLabel?: string
+  tone?: 'danger' | 'success'
+  submitting?: boolean
+}) {
+  return (
+    <Modal
+      title={title}
+      width={440}
+      onClose={onClose}
+      actions={
+        <>
+          <ModalButton variant="cancel" onClick={onClose}>
+            إلغاء
+          </ModalButton>
+          <ModalButton tone={tone} onClick={onConfirm} disabled={submitting}>
+            {submitting ? submittingLabel : confirmLabel}
+          </ModalButton>
+        </>
+      }
+    >
+      <p className="text-right text-base leading-relaxed text-muted">{message}</p>
+    </Modal>
+  )
+}
+
+/**
+ * زرار حذف داخل مودالز التعديل — منفصل عن الفورم بفاصل، وشكله رابط خفيف
+ * (أيقونة + نص بعرض المحتوى) مش زرار ملء العرض تقيل زي زراير التأكيد،
+ * لإن ده مجرد فتح لمودال «تأكيد الحذف» الفعلي مش الحذف نفسه.
+ */
+export function ModalDangerZone({
+  label,
+  onClick,
+}: {
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <>
+      <div className="h-px w-full shrink-0 bg-line" />
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex shrink-0 items-center gap-2 self-start text-sm font-bold text-danger transition-colors hover:text-danger/80"
+      >
+        <Trash2 className="size-4 shrink-0" strokeWidth={2} />
+        {label}
+      </button>
+    </>
   )
 }

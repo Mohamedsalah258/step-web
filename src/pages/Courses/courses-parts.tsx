@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import {
   Download,
   FileText,
@@ -17,12 +18,13 @@ import { Button, IconButton } from '@/components/ui/Button'
 import { RowActions, Truncate, type Column } from '@/components/ui/Table'
 import { RouteTabs } from '@/components/ui/Tabs'
 import { TextField, TextArea } from '@/components/ui/Field'
+import { CardSkeleton, ErrorState } from '@/components/ui/States'
 import { cn } from '@/lib/cn'
-import {
-  COURSE_DETAIL,
-  type CourseFile,
-  type CourseTabCounts,
-} from '@/data/courses'
+import { formatDate } from '@/lib/format'
+import { useAsync } from '@/lib/useAsync'
+import { uploadUrl } from '@/api/uploads'
+import { getCourseDetail, type ApiCourseDetail, type ApiContentItem } from '@/api/courses'
+import type { CourseTabCounts } from '@/data/courses'
 
 /*
  * أجزاء مشتركة بين شاشات الكورسات (مش صفحات — مفيش default export).
@@ -30,39 +32,57 @@ import {
 
 /* ─────────────────── هيدر الكورس — فيجما node 2007:4077 ─────────────────── */
 
-export function CourseHeader({ courseId = '1' }: { courseId?: string }) {
+export function CourseHeader({ course }: { course: ApiCourseDetail }) {
+  /*
+   * لينك «تعديل الكورس» لازم يبقى نسبي للصفحة الحالية (محتوى/مذكرات/امتحانات)
+   * مش مسار ثابت لصفحة الكورسات، وإلا المودال هيترسم فوق `CoursesList` وهيطلع
+   * المستخدم بره الصفحة اللي هو فيها (شوف router.tsx: كل تاب من التابس دي
+   * عنده child route اسمه `edit` بيرندر نفس `EditCourseModal`).
+   */
+  const { pathname } = useLocation()
   return (
     <Card className="w-full shrink-0 p-5">
-      <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-start">
-        {/* غلاف الكورس — بلوك بديل لحد ما يتوفر غلاف حقيقي (قرار #7) */}
+      <div className="flex flex-col-reverse gap-4 md:flex-row md:items-start">
+        {/* غلاف الكورس — بلوك بديل لحد ما يتوفر صورة، أو الصورة الحقيقية لو موجودة */}
         <div className="hidden h-[104px] w-[140px] shrink-0 items-center justify-center overflow-hidden rounded-panel border border-line bg-surface sm:flex">
-          <ImageIcon className="size-8 text-line" strokeWidth={1.5} />
+          {course.coverFileId ? (
+            <img
+              src={uploadUrl(course.coverFileId)}
+              alt={course.name}
+              className="size-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="size-8 text-line" strokeWidth={1.5} />
+          )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col items-end gap-2">
-          <p className="text-right text-2xs text-muted">{COURSE_DETAIL.path}</p>
-          <div className="flex items-center gap-2">
-            <h2 className="text-right text-xl font-extrabold text-ink">
-              {COURSE_DETAIL.name}
-            </h2>
-            <Badge tone="brand">{COURSE_DETAIL.badge}</Badge>
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+          <p className="text-right text-2xs text-muted">{course.path}</p>
+          <h2 className="text-right text-xl font-extrabold text-ink">
+            {course.name}
+          </h2>
+          {course.description ? (
+            <p className="text-right text-base leading-relaxed text-muted">
+              {course.description}
+            </p>
+          ) : null}
+
+          {/* action-row — تعديل الكورس + شارة مدفوع + السعر في صف واحد تحت الوصف */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <span className="mono text-sm font-bold text-brand">
+              {course.isFree ? 'مجاني' : `ج.م ${course.price} · سعر الاشتراك`}
+            </span>
+            <Badge tone={course.isFree ? 'success' : 'brand'}>
+              {course.isFree ? 'مجاني' : 'مدفوع'}
+            </Badge>
+            <Link
+              to={`${pathname}/edit`}
+              className="inline-flex h-[38px] items-center gap-2 rounded-ctl border border-line bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-surface"
+            >
+              <Pencil className="size-3.5" strokeWidth={2.5} />
+              تعديل الكورس
+            </Link>
           </div>
-          <p className="text-right text-base leading-relaxed text-muted">
-            {COURSE_DETAIL.description}
-          </p>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end gap-3">
-          <Link
-            to={`/courses/${courseId}/edit`}
-            className="inline-flex h-[38px] items-center gap-2 rounded-ctl border border-line bg-white px-4 text-sm font-bold text-ink transition-colors hover:bg-surface"
-          >
-            <Pencil className="size-3.5" strokeWidth={2.5} />
-            {COURSE_DETAIL.editLabel}
-          </Link>
-          <span className="mono text-sm font-bold text-brand">
-            {COURSE_DETAIL.price}
-          </span>
         </div>
       </div>
     </Card>
@@ -106,23 +126,54 @@ export function CourseTabs({
   )
 }
 
-/** غلاف موحّد لشاشات تفاصيل الكورس: هيدر + تابس + محتوى */
-export function CourseDetailPage({
-  title,
-  counts,
-  courseId = '1',
-  children,
-}: {
-  title: string
-  counts: CourseTabCounts
-  courseId?: string
-  children: React.ReactNode
-}) {
+/** عناوين التابس — بتتحدد من آخر جزء في المسار الحالي (شوف CourseDetailLayout) */
+const TAB_TITLES: Record<string, string> = {
+  content: 'محتوى الكورس',
+  notes: 'مذكرات الكورس',
+  'notes-tab': 'ملاحظات الكورس',
+  exams: 'امتحانات الكورس',
+}
+
+export type CourseDetailOutletContext = {
+  course: ApiCourseDetail
+  /** بينده أي تغيير في التاب الحالي يأثّر على بيانات الكورس (زي tabCounts) */
+  onDataChanged: () => void
+}
+
+/**
+ * غلاف مشترك للتابس الأربعة — parent route واحد بيفضل mounted وانت بتنقّل
+ * بين محتوى/مذكرات/ملاحظات/امتحانات (شوف router.tsx: التابس دي كلها children
+ * تحت `courses/:id`). بيانات الكورس (الهيدر) بتتجاب هنا مرة واحدة بس، فمفيش
+ * فلاش تحميل صفحة كاملة مع كل تبديل تاب زي ما كان لما كل تاب كان بيجيب
+ * الكورس بنفسه من الصفر.
+ */
+export function CourseDetailLayout() {
+  const { id: courseId = '' } = useParams()
+  const { pathname } = useLocation()
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data: course, loading, error, reload } = useAsync(
+    () => getCourseDetail(courseId),
+    [courseId, refreshKey],
+  )
+
+  if (loading && !course) return <CardSkeleton />
+  if (error || !course) {
+    return <ErrorState description={error ?? 'تعذر العثور على الكورس'} onRetry={reload} />
+  }
+
+  const tabKey = Object.keys(TAB_TITLES).find((k) => pathname.includes(`/${k}`))
+  const title = tabKey ? TAB_TITLES[tabKey] : course.name
+
   return (
-    <Page title={title}>
-      <CourseHeader courseId={courseId} />
-      <CourseTabs courseId={courseId} counts={counts} />
-      {children}
+    <Page
+      title={title}
+      outletContext={{
+        course,
+        onDataChanged: () => setRefreshKey((k) => k + 1),
+      }}
+    >
+      <CourseHeader course={course} />
+      <CourseTabs courseId={courseId} counts={course.tabCounts} />
     </Page>
   )
 }
@@ -184,11 +235,15 @@ export function AddForm({
   children,
   submit,
   notice,
+  onSubmit,
+  disabled,
 }: {
   title: string
   children: React.ReactNode
   submit: string
   notice?: string
+  onSubmit?: () => void
+  disabled?: boolean
 }) {
   return (
     <Card className="flex w-full shrink-0 flex-col self-start lg:w-[380px]">
@@ -196,7 +251,9 @@ export function AddForm({
       <div className="flex flex-col gap-4 p-5">
         {children}
         {notice ? <ProtectionNotice>{notice}</ProtectionNotice> : null}
-        <Button full>{submit}</Button>
+        <Button full onClick={onSubmit} disabled={disabled}>
+          {submit}
+        </Button>
       </div>
     </Card>
   )
@@ -208,16 +265,35 @@ export function TitleAndDescription({
   titlePlaceholder,
   descLabel,
   descPlaceholder,
+  title,
+  onTitleChange,
+  description,
+  onDescriptionChange,
 }: {
   titleLabel: string
   titlePlaceholder: string
   descLabel: string
   descPlaceholder: string
+  title: string
+  onTitleChange: (value: string) => void
+  description: string
+  onDescriptionChange: (value: string) => void
 }) {
   return (
     <>
-      <TextField label={titleLabel} placeholder={titlePlaceholder} />
-      <TextArea label={descLabel} placeholder={descPlaceholder} rows={3} />
+      <TextField
+        label={titleLabel}
+        placeholder={titlePlaceholder}
+        value={title}
+        onChange={onTitleChange}
+      />
+      <TextArea
+        label={descLabel}
+        placeholder={descPlaceholder}
+        rows={3}
+        value={description}
+        onChange={onDescriptionChange}
+      />
     </>
   )
 }
@@ -261,8 +337,9 @@ export function ListCard({
  */
 export function fileColumns(
   titleHeader: string,
-  editPath: (row: CourseFile) => string,
-): Column<CourseFile>[] {
+  editPath: (row: ApiContentItem) => string,
+  onDelete: (row: ApiContentItem) => void,
+): Column<ApiContentItem>[] {
   return [
     {
       key: 'index',
@@ -284,28 +361,10 @@ export function fileColumns(
       ),
     },
     {
-      key: 'type',
-      header: 'النوع',
-      width: 70,
-      render: (r) => <Badge tone="danger">{r.type}</Badge>,
-    },
-    {
-      key: 'size',
-      header: 'الحجم',
-      width: 90,
-      render: (r) => <span className="num text-muted">{r.size}</span>,
-    },
-    {
       key: 'date',
       header: 'تاريخ الرفع',
       width: 120,
-      render: (r) => <span className="num text-muted">{r.date}</span>,
-    },
-    {
-      key: 'downloads',
-      header: 'التحميلات',
-      width: 110,
-      render: (r) => <span className="mono text-muted">{r.downloads}</span>,
+      render: (r) => <span className="num text-muted">{formatDate(r.createdAt)}</span>,
     },
     {
       key: 'actions',
@@ -320,8 +379,14 @@ export function fileColumns(
             tone="brand"
             to={editPath(r)}
           />
-          <IconButton icon={Download} label="تحميل" />
-          <IconButton icon={Trash2} label="حذف" tone="danger" />
+          {r.fileId ? (
+            <IconButton
+              icon={Download}
+              label="تحميل"
+              onClick={() => window.open(uploadUrl(r.fileId!), '_blank')}
+            />
+          ) : null}
+          <IconButton icon={Trash2} label="حذف" tone="danger" onClick={() => onDelete(r)} />
         </RowActions>
       ),
     },
@@ -346,7 +411,7 @@ export function FilePlate({
       >
         {action}
       </button>
-      <div className="flex min-w-0 flex-1 flex-col items-end gap-0.5">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
         <span className="num truncate text-sm font-bold text-ink">{name}</span>
         <span className="text-2xs text-muted">{meta}</span>
       </div>

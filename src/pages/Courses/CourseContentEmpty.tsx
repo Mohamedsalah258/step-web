@@ -1,7 +1,6 @@
-import { COURSE_TAB_COUNTS_EMPTY } from '@/data/courses'
-import { CourseContentShell } from './CourseContent'
+import CourseContent from './CourseContent'
 
-/** فيجما frame: v3-courses-content-empty (node 2009:5023) */
+/** فيجما frame: v3-courses-content-empty (node 2009:5023) — بقت نفس الصفحة الحقيقية */
 export default function CourseContentEmpty() {
-  return <CourseContentShell videos={[]} counts={COURSE_TAB_COUNTS_EMPTY} />
+  return <CourseContent />
 }

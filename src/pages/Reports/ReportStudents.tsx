@@ -1,27 +1,24 @@
-import { ArrowUp } from 'lucide-react'
+import { GraduationCap, UserCheck, Users2 } from 'lucide-react'
 import { Page } from '@/components/layout/Page'
 import { Card } from '@/components/ui/Card'
-import { StatRow } from '@/components/ui/StatCard'
+import { StatRow, type Stat } from '@/components/ui/StatCard'
 import { DataTable, Truncate, type Column } from '@/components/ui/Table'
-import { ProgressBar } from '@/components/ui/Misc'
+import { CardSkeleton, ErrorState, TableSkeleton } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
+import { formatArabicCount } from '@/lib/format'
+import { getStudentsReport } from '@/api/reports'
+import { STUDENTS_CHART_TITLE } from '@/data/reports'
 import {
-  STUDENTS_BY_FACULTY,
-  STUDENTS_CHART_TITLE,
-  STUDENTS_PREVIEWS,
-  STUDENTS_SUMMARY,
-  STUDENT_ROWS,
-  STUDENT_STATS,
-  type StudentRow,
-} from '@/data/reports'
-import {
+  DeltaBadge,
   ReportChartCard,
   ReportFilters,
-  ReportPreviews,
   ReportSummaryBar,
   ReportTabs,
+  useReportFilters,
 } from './reports-parts'
 
-/** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 43:112) */
+type StudentRow = { faculty: string; students: number; subscriptions: number; delta: number | null }
+
 const COLUMNS: Column<StudentRow>[] = [
   {
     key: 'faculty',
@@ -34,76 +31,100 @@ const COLUMNS: Column<StudentRow>[] = [
     ),
   },
   {
-    key: 'total',
-    header: 'إجمالي الطلاب',
-    width: 120,
-    render: (r) => <span className="mono font-bold text-ink">{r.total}</span>,
-  },
-  {
-    key: 'active',
-    header: 'الطلاب النشطين',
-    width: 150,
-    render: (r) => <span className="mono text-muted">{r.active}</span>,
-  },
-  {
-    key: 'subs',
-    header: 'اشتراكات فعالة',
+    key: 'students',
+    header: 'طلاب اشتركوا في الفترة',
     width: 180,
-    render: (r) => <span className="mono text-muted">{r.subs}</span>,
+    render: (r) => <span className="mono font-bold text-ink">{formatArabicCount(r.students, 'طالب', 'طالب')}</span>,
   },
   {
-    key: 'activity',
-    header: 'نشاط الطلاب الفعلي',
-    width: 240,
-    // فيجما: الشريط 180px على شمال النسبة — RTL: الشريط أول عنصر في الـ DOM
+    key: 'subscriptions',
+    header: 'اشتراكات جديدة',
+    width: 160,
     render: (r) => (
-      <div className="flex w-full items-center gap-3">
-        <div className="w-[180px] shrink-0">
-          <ProgressBar value={r.activity} />
-        </div>
-        <span className="num text-sm text-muted">{r.activityLabel}</span>
-      </div>
+      <span className="mono text-muted">{formatArabicCount(r.subscriptions, 'اشتراك', 'اشتراك')}</span>
     ),
   },
   {
-    key: 'rate',
-    header: 'نسبة النشاط',
+    key: 'delta',
+    header: 'مقارنة',
     width: 120,
-    render: (r) => (
-      <div className="flex items-center gap-1">
-        <ArrowUp className="size-3 shrink-0 text-success" strokeWidth={2.5} />
-        <span className="num text-sm font-bold text-success">{r.rate}</span>
-      </div>
-    ),
+    render: (r) => <DeltaBadge delta={r.delta} />,
   },
 ]
 
 /** فيجما frame: v3-report-students (node 43:5) */
 export default function ReportStudents() {
+  const [filters, setFilters] = useReportFilters()
+  const { data, loading, error, reload } = useAsync(
+    () => getStudentsReport(filters),
+    [filters.from, filters.to, filters.compare],
+  )
+
+  const stats: Stat[] = data
+    ? [
+        {
+          label: 'إجمالي الطلاب المسجلين',
+          value: formatArabicCount(data.totalStudents, 'طالب', 'طالب'),
+          note: 'شامل كافة الكليات',
+          icon: Users2,
+          mono: true,
+        },
+        {
+          label: 'طلاب اشتركوا في الفترة',
+          value: formatArabicCount(data.activeStudents, 'طالب', 'طالب'),
+          icon: UserCheck,
+          mono: true,
+          note:
+            data.activeStudentsDelta !== null
+              ? `${data.activeStudentsDelta >= 0 ? '+' : ''}${data.activeStudentsDelta}% عن الفترة السابقة`
+              : undefined,
+          noteTone: data.activeStudentsDelta !== null ? (data.activeStudentsDelta >= 0 ? 'success' : 'danger') : undefined,
+          trend: data.activeStudentsDelta !== null ? (data.activeStudentsDelta >= 0 ? 'up' : 'down') : undefined,
+        },
+        {
+          label: 'الاشتراكات الفعالة الآن',
+          value: formatArabicCount(data.activeSubscriptionsCount, 'اشتراك', 'اشتراك'),
+          icon: GraduationCap,
+          mono: true,
+        },
+      ]
+    : []
+
   return (
     <Page title="التقارير والإحصائيات">
       <ReportTabs />
-      <ReportFilters />
-      <StatRow stats={STUDENT_STATS} />
-      <ReportChartCard
-        title={STUDENTS_CHART_TITLE}
-        items={STUDENTS_BY_FACULTY}
-      />
+      <ReportFilters value={filters} onChange={setFilters} report="students" />
 
-      <Card className="w-full shrink-0 overflow-hidden">
-        <DataTable
-          columns={COLUMNS}
-          rows={STUDENT_ROWS}
-          rowKey={(r) => r.faculty}
-          className="min-w-[1050px]"
-        />
-      </Card>
+      {error ? (
+        <ErrorState description={error} onRetry={reload} />
+      ) : !data && loading ? (
+        <CardSkeleton />
+      ) : (
+        <>
+          <StatRow stats={stats} />
+          <ReportChartCard title={STUDENTS_CHART_TITLE} items={data?.chart ?? []} />
 
-      <ReportSummaryBar
-        right={STUDENTS_SUMMARY.right}
-        left={STUDENTS_SUMMARY.left}
-      />
-      <ReportPreviews rows={STUDENTS_PREVIEWS} />
+          <Card className="w-full shrink-0 overflow-hidden">
+            {!data ? (
+              <TableSkeleton rows={4} cols={4} />
+            ) : (
+              <DataTable
+                columns={COLUMNS}
+                rows={data.rows}
+                rowKey={(r) => r.faculty}
+                className="min-w-[850px]"
+              />
+            )}
+          </Card>
+
+          {data ? (
+            <ReportSummaryBar
+              right={`إجمالي طلاب المنصة: ${formatArabicCount(data.totalStudents, 'طالب', 'طالب')} مسجل`}
+              left={`الاشتراكات الفعالة الآن: ${formatArabicCount(data.activeSubscriptionsCount, 'اشتراك', 'اشتراك')}`}
+            />
+          ) : null}
+        </>
+      )}
     </Page>
   )
 }

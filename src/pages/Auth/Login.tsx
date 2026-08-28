@@ -1,7 +1,11 @@
-import { GraduationCap, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { GraduationCap, Eye, EyeOff } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BRAND } from '@/data/admin'
 import { LOGIN, LOGIN_HERO, LOGIN_POLICIES } from '@/data/auth'
+import { login } from '@/api/auth'
+import { ApiError } from '@/api/client'
+import { loginSuccess } from '@/lib/auth-store'
 
 /**
  * فيجما frame: v3-admin-login (node 26:6) — 1440x900.
@@ -9,6 +13,28 @@ import { LOGIN, LOGIN_HERO, LOGIN_POLICIES } from '@/data/auth'
  */
 export default function Login() {
   const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+    try {
+      const res = await login(email, password)
+      loginSuccess(res.accessToken, res.admin)
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'تعذّر تسجيل الدخول. حاول مرة أخرى.',
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -41,13 +67,13 @@ export default function Login() {
           </div>
 
           {/* form-fields — node 26:13 */}
-          <form
-            className="flex flex-col gap-5"
-            onSubmit={(e) => {
-              e.preventDefault()
-              navigate('/')
-            }}
-          >
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            {error ? (
+              <p className="rounded-ctl bg-danger-bg px-4 py-2.5 text-right text-sm font-semibold text-danger">
+                {error}
+              </p>
+            ) : null}
+
             <label className="flex flex-col gap-1.5">
               <span className="text-right text-sm font-bold text-ink">
                 {LOGIN.emailLabel}
@@ -55,6 +81,10 @@ export default function Login() {
               <input
                 type="email"
                 dir="ltr"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder={LOGIN.emailPlaceholder}
                 className="h-12 w-full rounded-ctl border border-line bg-white px-4 text-left text-base text-ink outline-none transition-colors placeholder:text-muted focus:border-brand"
               />
@@ -66,16 +96,25 @@ export default function Login() {
               </span>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   dir="ltr"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder={LOGIN.passwordPlaceholder}
                   className="h-12 w-full rounded-ctl border border-line bg-white pe-4 ps-[76px] text-left text-base text-ink outline-none transition-colors placeholder:text-muted focus:border-brand"
                 />
                 <button
                   type="button"
+                  onClick={() => setShowPassword((v) => !v)}
                   className="absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-1.5 text-sm font-bold text-brand transition-opacity hover:opacity-70"
                 >
-                  <Eye className="size-4" strokeWidth={2} />
+                  {showPassword ? (
+                    <EyeOff className="size-4" strokeWidth={2} />
+                  ) : (
+                    <Eye className="size-4" strokeWidth={2} />
+                  )}
                   {LOGIN.passwordToggle}
                 </button>
               </div>
@@ -83,9 +122,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="h-12 w-full rounded-ctl bg-brand text-base font-bold text-white transition-colors hover:bg-brand/90"
+              disabled={submitting}
+              className="h-12 w-full rounded-ctl bg-brand text-base font-bold text-white transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {LOGIN.submit}
+              {submitting ? '...جارِ الدخول' : LOGIN.submit}
             </button>
           </form>
 

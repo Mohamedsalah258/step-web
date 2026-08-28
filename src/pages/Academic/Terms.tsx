@@ -1,14 +1,15 @@
-import { Plus, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Plus, RotateCcw } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { ButtonLink } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/Badge'
 import { DataTable, type Column } from '@/components/ui/Table'
-import {
-  TERMS,
-  TERM_LINKED_COURSES,
-  type Term,
-  type LinkedCourse,
-} from '@/data/academic'
+import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
+import { formatArabicCount } from '@/lib/format'
+import { listTerms, type ApiTermRow } from '@/api/academic'
+import { listCourses, type ApiCourseListItem } from '@/api/courses'
 import {
   AcademicListScreen,
   EditDeletePills,
@@ -24,7 +25,7 @@ const CRUMBS: Crumb[] = [
 ]
 
 /** ⚠️ أول عمود = أول عمود من اليمين (فيجما node 29:998) */
-const COLUMNS: Column<Term>[] = [
+const COLUMNS: Column<ApiTermRow>[] = [
   {
     key: 'index',
     header: '#',
@@ -41,7 +42,7 @@ const COLUMNS: Column<Term>[] = [
     key: 'courses',
     header: 'عدد الكورسات',
     width: 130,
-    render: (r) => <NumCell>{r.courses}</NumCell>,
+    render: (r) => <NumCell>{formatArabicCount(r.courses, 'كورس', 'كورسات')}</NumCell>,
   },
   {
     key: 'status',
@@ -54,12 +55,17 @@ const COLUMNS: Column<Term>[] = [
     header: 'إجراءات',
     width: 160,
     align: 'center',
-    render: () => <EditDeletePills />,
+    render: (r) => (
+      <EditDeletePills
+        editTo={`/academic/terms/${r.id}/edit`}
+        deleteTo={`/academic/terms/${r.id}/delete`}
+      />
+    ),
   },
 ]
 
 /** linked-courses-section — فيجما node 29:1031 */
-const LINKED_COLUMNS: Column<LinkedCourse>[] = [
+const LINKED_COLUMNS: Column<ApiCourseListItem>[] = [
   {
     key: 'name',
     header: 'اسم الكورس',
@@ -76,7 +82,7 @@ const LINKED_COLUMNS: Column<LinkedCourse>[] = [
     key: 'price',
     header: 'السعر',
     width: 120,
-    render: (r) => <NumCell>{r.price}</NumCell>,
+    render: (r) => <NumCell>{r.isFree ? 'مجاني' : `${r.price} ج.م`}</NumCell>,
   },
   {
     key: 'status',
@@ -88,13 +94,34 @@ const LINKED_COLUMNS: Column<LinkedCourse>[] = [
 
 /** فيجما frame: v3-academic-terms (node 29:958) */
 export default function Terms() {
+  const [params] = useSearchParams()
+  const stageId = params.get('parentId') ?? undefined
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { data, loading, error, reload } = useAsync(
+    () => listTerms({ parentId: stageId }),
+    [stageId, refreshKey],
+  )
+  const {
+    data: coursesData,
+    loading: coursesLoading,
+    error: coursesError,
+    reload: reloadCourses,
+  } = useAsync(() => listCourses({ limit: 10 }), [refreshKey])
+
   return (
     <AcademicListScreen
       pageTitle="الترمات الدراسية"
-      heading="إدارة ترمات المرحلة"
+      heading={stageId ? 'ترمات المرحلة المختارة' : 'كل الترمات'}
       breadcrumb={CRUMBS}
       actions={
         <>
+          <ButtonLink
+            to="/academic/stages"
+            variant="secondary"
+            icon={ArrowLeft}
+          >
+            العودة للمراحل
+          </ButtonLink>
           <ButtonLink to="/academic/terms/add" icon={Plus}>
             إضافة ترم
           </ButtonLink>
@@ -107,19 +134,38 @@ export default function Terms() {
           </ButtonLink>
         </>
       }
+      outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
       columns={COLUMNS}
-      rows={TERMS}
+      rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[700px]"
+      empty={
+        error ? (
+          <ErrorState description={error} onRetry={reload} />
+        ) : !data && loading ? (
+          <TableSkeleton rows={4} cols={4} />
+        ) : (
+          <EmptyState title="لا يوجد ترمات مضافة بعد" description="ابدأ بإضافة أول ترم." />
+        )
+      }
     >
       <Card className="w-full shrink-0 overflow-hidden">
         <CardHeader title="الكورسات المرتبطة بالترمات" />
-        <DataTable
-          columns={LINKED_COLUMNS}
-          rows={TERM_LINKED_COURSES}
-          rowKey={(r) => r.id}
-          className="min-w-[650px]"
-        />
+        {coursesError ? (
+          <ErrorState description={coursesError} onRetry={reloadCourses} />
+        ) : !coursesData && coursesLoading ? (
+          <TableSkeleton rows={4} cols={4} />
+        ) : (
+          <DataTable
+            columns={LINKED_COLUMNS}
+            rows={coursesData?.data ?? []}
+            rowKey={(r) => r.id}
+            className="min-w-[650px]"
+            empty={
+              <EmptyState title="لا يوجد كورسات مضافة بعد" description="ابدأ بإضافة أول كورس." />
+            }
+          />
+        )}
       </Card>
     </AcademicListScreen>
   )
