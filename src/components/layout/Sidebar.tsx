@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { GraduationCap, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { NAV_ITEMS } from '@/lib/nav'
 import { BRAND } from '@/data/admin'
 import { cn } from '@/lib/cn'
+import { Logo } from '@/components/ui/Logo'
 import { useBodyScrollLock } from '@/lib/useBodyScrollLock'
 
 type Props = {
@@ -50,9 +51,7 @@ export function Sidebar({ open, onClose }: Props) {
     <>
       {/* brand-header — node 7:200: اللوجو يمين والنص شماله */}
       <div className="flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-logo bg-brand">
-          <GraduationCap className="size-6 text-white" strokeWidth={2} />
-        </div>
+        <Logo className="size-10 shrink-0" />
         <div className="flex flex-col items-start gap-0.5 whitespace-nowrap">
           <p className="text-2xl font-extrabold leading-none text-white">
             {BRAND.name}

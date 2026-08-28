@@ -8,5 +8,5 @@ export const ADMIN = {
 
 export const BRAND = {
   name: 'STEP',
-  tagline: 'EDUCATIONAL PLATFORM',
+  tagline: 'Science Teaching Educational Platform',
 } as const

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { GraduationCap, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BRAND } from '@/data/admin'
+import { Logo } from '@/components/ui/Logo'
 import { LOGIN, LOGIN_HERO, LOGIN_POLICIES } from '@/data/auth'
 import { login } from '@/api/auth'
 import { ApiError } from '@/api/client'
@@ -43,9 +44,7 @@ export default function Login() {
         <div className="flex w-full max-w-[420px] flex-col gap-8">
           {/* brand — اللوجو يمين والنص شماله */}
           <div className="flex items-center gap-3">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-logo bg-brand">
-              <GraduationCap className="size-7 text-white" strokeWidth={2} />
-            </div>
+            <Logo className="size-12 shrink-0" />
             <div className="flex flex-col items-start gap-0.5">
               <p className="text-2xl font-extrabold leading-none text-ink">
                 {BRAND.name}
@@ -151,9 +150,7 @@ export default function Login() {
 
       {/* hero-branding — node 26:26 */}
       <div className="hidden min-w-0 flex-1 flex-col items-center justify-center gap-6 bg-navy px-16 py-12 lg:flex">
-        <div className="flex size-20 items-center justify-center rounded-[20px] bg-brand">
-          <GraduationCap className="size-11 text-white" strokeWidth={1.75} />
-        </div>
+        <Logo className="size-20" />
         <h2 className="max-w-[420px] text-center text-[28px] font-extrabold leading-snug text-white">
           {LOGIN_HERO.title}
         </h2>
