@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: step-web
+  namespace: step
+  labels:
+    app: step-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: step-web
+  template:
+    metadata:
+      labels:
+        app: step-web
+    spec:
+      containers:
+        - name: step-web
+          image: ghcr.io/mohamedsalah258/step-web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: step-web
+  namespace: step
+spec:
+  selector:
+    app: step-web
+  ports:
+    - port: 80
+      targetPort: 80
