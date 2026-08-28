@@ -6,41 +6,6 @@
 
 /* ───────────────────────── الإشعارات — node 7:2017 ───────────────────────── */
 
-export type AlertTone = 'danger' | 'warning' | 'success'
-
-export type AdminAlert = {
-  id: string
-  time: string
-  title: string
-  desc: string
-  tone: AlertTone
-}
-
-/** تنبيهات الإدارة والسيستم — node 7:2040 */
-export const ADMIN_ALERTS: AdminAlert[] = [
-  {
-    id: 'al-1',
-    time: 'منذ دقيقة',
-    title: 'طلب شراء جديد من أحمد محمد',
-    desc: 'كورس أساسيات التشريح — الترم الأول',
-    tone: 'danger',
-  },
-  {
-    id: 'al-2',
-    time: 'منذ 8 دقائق',
-    title: 'طلب ريست جهاز من مريم عبد الرحمن',
-    desc: 'كورس علم الأمراض البشرية المتقدم',
-    tone: 'warning',
-  },
-  {
-    id: 'al-3',
-    time: 'منذ ساعتين',
-    title: 'طلب ريست جهاز مقبول لـ عبد الله فيصل',
-    desc: 'تأكيد تطابق البيانات ومسح الجهاز القديم',
-    tone: 'success',
-  },
-]
-
 export const ALERTS_CARD_TITLE = 'تنبيهات الإدارة والسيستم'
 
 /** فورم إرسال إشعار جديد — node 7:2059 */
@@ -48,58 +13,23 @@ export const NOTIFY_FORM = {
   cardTitle: 'إرسال إشعار جديد للطلاب',
   titleLabel: 'عنوان الإشعار',
   titlePlaceholder: 'اكتب عنوان الإشعار هنا...',
+  /** المكان ده بيعرض معاينة حية (عدد + وصف) بتتغيّر مع فلاتر الاستهداف، مش دروب داون ثابت */
   audienceLabel: 'المستهدفين المستلمين',
-  audienceOptions: ['كل الطلاب (1,247 طالب)'],
   typeLabel: 'نوع الإشعار',
   typeOptions: ['عام'],
   targetingLabel: 'استهداف المستلمين',
   courseLabel: 'استهداف حسب الكورس',
   stageLabel: 'استهداف حسب المرحلة',
   termLabel: 'استهداف حسب الترم',
-  targetingOptions: ['الكل'],
+  /** أول خيار في كل دروب داون استهداف — يعني من غير فلتر */
+  allOption: 'الكل',
   bodyLabel: 'محتوى رسالة الإشعار',
   bodyPlaceholder: 'اكتب تفاصيل الرسالة ومحتوى التنبيه الذي سيصل للأجهزة مباشرة...',
   submit: 'إرسال الإشعار فوراً',
 }
 
-export type SentNotification = {
-  id: string
-  title: string
-  type: string
-  audience: string
-  date: string
-  status: string
-}
-
 /** سجل الإشعارات المرسلة سابقاً — node 7:2092 */
 export const NOTIFY_HISTORY_TITLE = 'سجل الإشعارات المرسلة سابقاً'
-
-export const SENT_NOTIFICATIONS: SentNotification[] = [
-  {
-    id: 'nt-1',
-    title: 'بدء مراجعة كورس التشريح الثاني',
-    type: 'عام',
-    audience: 'كل الطلاب (1,247 طالب)',
-    date: '2026-05-24 10:00',
-    status: 'مرسل',
-  },
-  {
-    id: 'nt-2',
-    title: 'تنبيه أمني هام بخصوص تكرار الأجهزة',
-    type: 'عام',
-    audience: 'كل الطلاب (1,247 طالب)',
-    date: '2026-05-22 14:15',
-    status: 'مرسل',
-  },
-  {
-    id: 'nt-3',
-    title: 'تخفيضات نهاية العام الدراسي STEP',
-    type: 'عام',
-    audience: 'كل الطلاب (1,247 طالب)',
-    date: '2026-05-18 09:30',
-    status: 'مرسل',
-  },
-]
 
 /* ────────────────────────── البنرات — node 7:2210 ────────────────────────── */
 
