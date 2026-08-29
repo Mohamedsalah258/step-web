@@ -37,21 +37,24 @@ type ApiEnvelope<T> =
       error: { code: string; message: string; fields?: Record<string, string> }
     }
 
-async function request<T>(
-  path: string,
-  init?: RequestInit & {
-    query?: Record<string, string | number | undefined>
-    /** يمنع الـ Content-Type الافتراضي application/json — لازم لـ FormData (رفع ملفات) */
-    isFormData?: boolean
-  },
-): Promise<T> {
-  const url = new URL(path, BASE_URL)
-  if (init?.query) {
-    for (const [key, value] of Object.entries(init.query)) {
-      if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
-    }
-  }
+/**
+ * كاش خفيف في الذاكرة لطلبات GET — عشان الرجوع لصفحة اتزارت قبل كده
+ * بثواني يرجّع البيانات فورًا من غير استنى السيرفر تاني.
+ * بيتخزن الـ Promise نفسه (مش بس النتيجة النهائية) عشان لو كذا مكوّن
+ * طلبوا نفس الـ endpoint في نفس اللحظة، يشتركوا في نفس الطلب بدل تكراره.
+ * أي POST/PATCH/DELETE بيمسح الكاش كله (شوف clearApiCache تحت).
+ */
+const GET_CACHE_TTL_MS = 60_000
+const getCache = new Map<string, { promise: Promise<unknown>; expiresAt: number }>()
 
+export function clearApiCache(): void {
+  getCache.clear()
+}
+
+async function doFetch<T>(
+  url: URL,
+  init: (RequestInit & { isFormData?: boolean }) | undefined,
+): Promise<T> {
   const token = getToken()
   const res = await fetch(url.toString(), {
     ...init,
@@ -66,6 +69,7 @@ async function request<T>(
     // التوكن غير صالح/منتهي — نمسحه ونبلّغ باقي التطبيق (auth-store) عشان
     // يرجّع المستخدم لشاشة تسجيل الدخول.
     clearToken()
+    clearApiCache()
     window.dispatchEvent(new Event('step:unauthorized'))
   }
 
@@ -84,6 +88,47 @@ async function request<T>(
   }
 
   return body.data
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit & {
+    query?: Record<string, string | number | undefined>
+    /** يمنع الـ Content-Type الافتراضي application/json — لازم لـ FormData (رفع ملفات) */
+    isFormData?: boolean
+  },
+): Promise<T> {
+  const url = new URL(path, BASE_URL)
+  if (init?.query) {
+    for (const [key, value] of Object.entries(init.query)) {
+      if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
+    }
+  }
+
+  const method = init?.method ?? 'GET'
+  if (method !== 'GET') {
+    // أي تعديل ناجح أو فاشل بيخلي أي بيانات متخزنة قابلة للشك — أبسط وأضمن
+    // إجراء إننا نمسح الكاش كله بدل ما نحاول نحدد بدقة مين اتأثر.
+    try {
+      return await doFetch<T>(url, init)
+    } finally {
+      clearApiCache()
+    }
+  }
+
+  const key = url.toString()
+  const cached = getCache.get(key)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.promise as Promise<T>
+  }
+
+  const promise = doFetch<T>(url, init)
+  getCache.set(key, { promise, expiresAt: Date.now() + GET_CACHE_TTL_MS })
+  // لو الطلب فشل، منسيبوش الفشل متخزن — نشيله فورًا عشان أي محاولة تانية
+  // تبعت طلب حقيقي بدل ما تستنى انتهاء مدة الكاش وهي عارفة إنه فاشل.
+  promise.catch(() => getCache.delete(key))
+
+  return promise as Promise<T>
 }
 
 export const api = {

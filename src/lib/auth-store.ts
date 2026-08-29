@@ -1,5 +1,6 @@
 import { getMe } from '@/api/auth'
 import type { ApiAdmin } from '@/api/auth'
+import { clearApiCache } from '@/api/client'
 import { clearToken, getToken, setToken } from './token'
 
 /**
@@ -46,6 +47,7 @@ export function updateAdmin(admin: ApiAdmin) {
 
 export function logout() {
   clearToken()
+  clearApiCache()
   setState({ status: 'unauthenticated', admin: null })
 }
 
