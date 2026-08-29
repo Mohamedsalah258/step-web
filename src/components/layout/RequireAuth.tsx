@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { isAuthenticated } from '@/lib/auth'
+import { isAuthenticated } from '@/lib/token'
 
 /**
  * حارس الراوت: أي مسار تحت `/` محتاج توكن. لو مفيش، يرجّع لـ `/login`

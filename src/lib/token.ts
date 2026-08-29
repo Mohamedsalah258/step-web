@@ -27,3 +27,7 @@ export function clearToken(): void {
     // نفس الشيء
   }
 }
+
+export function isAuthenticated(): boolean {
+  return getToken() !== null
+}
