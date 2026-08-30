@@ -13,17 +13,17 @@ import {
   EditDeletePills,
   NameLink,
   NumCell,
+  academicPath,
   type Crumb,
 } from './AcademicTable'
 
-const CRUMBS: Crumb[] = [
-  { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
-  { label: 'التخصصات', to: '/academic/specializations' },
-  { label: 'المراحل' },
-]
-
 /** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 29:810) */
-const COLUMNS: Column<ApiStageRow>[] = [
+function buildColumns(
+  specializationId: string | undefined,
+  collegeId: string | undefined,
+  universityId: string | undefined,
+): Column<ApiStageRow>[] {
+  return [
   {
     key: 'index',
     header: '#',
@@ -34,7 +34,18 @@ const COLUMNS: Column<ApiStageRow>[] = [
     key: 'name',
     header: 'اسم المرحلة',
     flex: true,
-    render: (r) => <NameLink to={`/academic/terms?parentId=${r.id}`}>{r.name}</NameLink>,
+    render: (r) => (
+      <NameLink
+        to={academicPath('/academic/terms', {
+          parentId: r.id,
+          specializationId,
+          collegeId,
+          universityId,
+        })}
+      >
+        {r.name}
+      </NameLink>
+    ),
   },
   {
     key: 'terms',
@@ -66,27 +77,39 @@ const COLUMNS: Column<ApiStageRow>[] = [
       />
     ),
   },
-]
+  ]
+}
 
 /** فيجما frame: v3-academic-stages (node 29:772) */
 export default function Stages() {
   const [params] = useSearchParams()
   const specializationId = params.get('parentId') ?? undefined
+  const collegeId = params.get('collegeId') ?? undefined
+  const universityId = params.get('universityId') ?? undefined
   const [refreshKey, setRefreshKey] = useState(0)
   const { data, loading, error, reload } = useAsync(
     () => listStages({ parentId: specializationId }),
     [specializationId, refreshKey],
   )
+  const specializationsBackTo = academicPath('/academic/specializations', {
+    parentId: collegeId,
+    universityId,
+  })
+  const crumbs: Crumb[] = [
+    { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
+    { label: 'التخصصات', to: specializationsBackTo },
+    { label: 'المراحل' },
+  ]
 
   return (
     <AcademicListScreen
       pageTitle="إدارة المراحل الدراسية"
       heading={specializationId ? 'مراحل التخصص المختار' : 'كل المراحل'}
-      breadcrumb={CRUMBS}
+      breadcrumb={crumbs}
       actions={
         <>
           <ButtonLink
-            to="/academic/specializations"
+            to={specializationsBackTo}
             variant="secondary"
             icon={ArrowLeft}
           >
@@ -98,7 +121,7 @@ export default function Stages() {
         </>
       }
       outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
-      columns={COLUMNS}
+      columns={buildColumns(specializationId, collegeId, universityId)}
       rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[850px]"

@@ -15,14 +15,9 @@ import {
   EditDeletePills,
   NameLink,
   NumCell,
+  academicPath,
   type Crumb,
 } from './AcademicTable'
-
-const CRUMBS: Crumb[] = [
-  { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
-  { label: 'المراحل', to: '/academic/stages' },
-  { label: 'الترمات' },
-]
 
 /** ⚠️ أول عمود = أول عمود من اليمين (فيجما node 29:998) */
 const COLUMNS: Column<ApiTermRow>[] = [
@@ -96,6 +91,9 @@ const LINKED_COLUMNS: Column<ApiCourseListItem>[] = [
 export default function Terms() {
   const [params] = useSearchParams()
   const stageId = params.get('parentId') ?? undefined
+  const specializationId = params.get('specializationId') ?? undefined
+  const collegeId = params.get('collegeId') ?? undefined
+  const universityId = params.get('universityId') ?? undefined
   const [refreshKey, setRefreshKey] = useState(0)
   const { data, loading, error, reload } = useAsync(
     () => listTerms({ parentId: stageId }),
@@ -107,16 +105,26 @@ export default function Terms() {
     error: coursesError,
     reload: reloadCourses,
   } = useAsync(() => listCourses({ limit: 10 }), [refreshKey])
+  const stagesBackTo = academicPath('/academic/stages', {
+    parentId: specializationId,
+    collegeId,
+    universityId,
+  })
+  const crumbs: Crumb[] = [
+    { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
+    { label: 'المراحل', to: stagesBackTo },
+    { label: 'الترمات' },
+  ]
 
   return (
     <AcademicListScreen
       pageTitle="الترمات الدراسية"
       heading={stageId ? 'ترمات المرحلة المختارة' : 'كل الترمات'}
-      breadcrumb={CRUMBS}
+      breadcrumb={crumbs}
       actions={
         <>
           <ButtonLink
-            to="/academic/stages"
+            to={stagesBackTo}
             variant="secondary"
             icon={ArrowLeft}
           >

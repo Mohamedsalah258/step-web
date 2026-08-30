@@ -12,6 +12,7 @@ import {
   AcademicListScreen,
   NameLink,
   NumCell,
+  academicPath,
   type Crumb,
 } from './AcademicTable'
 
@@ -21,7 +22,8 @@ const CRUMBS: Crumb[] = [
 ]
 
 /** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 29:519) */
-const COLUMNS: Column<ApiCollegeRow>[] = [
+function buildColumns(universityId: string | undefined): Column<ApiCollegeRow>[] {
+  return [
   {
     key: 'index',
     header: '#',
@@ -33,7 +35,9 @@ const COLUMNS: Column<ApiCollegeRow>[] = [
     header: 'اسم الكلية',
     flex: true,
     render: (r) => (
-      <NameLink to={`/academic/specializations?parentId=${r.id}`}>{r.name}</NameLink>
+      <NameLink to={academicPath('/academic/specializations', { parentId: r.id, universityId })}>
+        {r.name}
+      </NameLink>
     ),
   },
   {
@@ -70,7 +74,8 @@ const COLUMNS: Column<ApiCollegeRow>[] = [
       </RowActions>
     ),
   },
-]
+  ]
+}
 
 /** فيجما frame: v3-academic-colleges (node 29:490) */
 export default function Colleges() {
@@ -104,7 +109,7 @@ export default function Colleges() {
         </>
       }
       outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
-      columns={COLUMNS}
+      columns={buildColumns(universityId)}
       rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[800px]"

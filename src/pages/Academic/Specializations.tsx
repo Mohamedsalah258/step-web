@@ -13,17 +13,16 @@ import {
   EditDeletePills,
   NameLink,
   NumCell,
+  academicPath,
   type Crumb,
 } from './AcademicTable'
 
-const CRUMBS: Crumb[] = [
-  { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
-  { label: 'الكليات', to: '/academic/colleges' },
-  { label: 'التخصصات' },
-]
-
 /** ⚠️ أول عمود في المصفوفة = أول عمود من اليمين (فيجما node 29:666) */
-const COLUMNS: Column<ApiSpecializationRow>[] = [
+function buildColumns(
+  collegeId: string | undefined,
+  universityId: string | undefined,
+): Column<ApiSpecializationRow>[] {
+  return [
   {
     key: 'index',
     header: '#',
@@ -34,7 +33,13 @@ const COLUMNS: Column<ApiSpecializationRow>[] = [
     key: 'name',
     header: 'اسم التخصص',
     flex: true,
-    render: (r) => <NameLink to={`/academic/stages?parentId=${r.id}`}>{r.name}</NameLink>,
+    render: (r) => (
+      <NameLink
+        to={academicPath('/academic/stages', { parentId: r.id, collegeId, universityId })}
+      >
+        {r.name}
+      </NameLink>
+    ),
   },
   {
     key: 'stages',
@@ -66,27 +71,35 @@ const COLUMNS: Column<ApiSpecializationRow>[] = [
       />
     ),
   },
-]
+  ]
+}
 
 /** فيجما frame: v3-academic-specializations (node 29:631) */
 export default function Specializations() {
   const [params] = useSearchParams()
   const collegeId = params.get('parentId') ?? undefined
+  const universityId = params.get('universityId') ?? undefined
   const [refreshKey, setRefreshKey] = useState(0)
   const { data, loading, error, reload } = useAsync(
     () => listSpecializations({ parentId: collegeId }),
     [collegeId, refreshKey],
   )
+  const collegesBackTo = academicPath('/academic/colleges', { parentId: universityId })
+  const crumbs: Crumb[] = [
+    { label: 'الهيكل الأكاديمي', to: '/academic/universities' },
+    { label: 'الكليات', to: collegesBackTo },
+    { label: 'التخصصات' },
+  ]
 
   return (
     <AcademicListScreen
       pageTitle="إدارة التخصصات"
       heading={collegeId ? 'تخصصات الكلية المختارة' : 'كل التخصصات'}
-      breadcrumb={CRUMBS}
+      breadcrumb={crumbs}
       actions={
         <>
           <ButtonLink
-            to="/academic/colleges"
+            to={collegesBackTo}
             variant="secondary"
             icon={ArrowLeft}
           >
@@ -98,7 +111,7 @@ export default function Specializations() {
         </>
       }
       outletContext={{ onDataChanged: () => setRefreshKey((k) => k + 1) }}
-      columns={COLUMNS}
+      columns={buildColumns(collegeId, universityId)}
       rows={error || (!data && loading) ? [] : (data?.data ?? [])}
       rowKey={(r) => r.id}
       tableClassName="min-w-[850px]"

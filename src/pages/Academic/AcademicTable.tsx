@@ -17,6 +17,21 @@ import { cn } from '@/lib/cn'
 
 export type Crumb = { label: string; to?: string }
 
+/**
+ * يبني رابط لصفحة أكاديمية تانية مع تمرير سياق كل الآباء (universityId,
+ * collegeId, ...) عبر query params — عشان روابط "العودة" والبريدكرمب في
+ * الصفحة الجاية تقدر ترجع بنفس النطاق (مش كل العناصر بدون فلترة).
+ * أي قيمة undefined بيتم تجاهلها من الرابط الناتج.
+ */
+export function academicPath(base: string, params: Record<string, string | undefined>): string {
+  const qs = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value) qs.set(key, value)
+  }
+  const query = qs.toString()
+  return query ? `${base}?${query}` : base
+}
+
 export function AcademicHeader({
   heading,
   breadcrumb,
