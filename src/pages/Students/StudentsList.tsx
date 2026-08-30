@@ -9,6 +9,7 @@ import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/States'
 import { useAsync } from '@/lib/useAsync'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { listStudents } from '@/api/students'
+import { listCourses } from '@/api/courses'
 import {
   STUDENT_FILTERS,
   STUDENTS_TITLE,
@@ -36,6 +37,8 @@ export function StudentsListShell() {
     () => listStudents({ q: debouncedSearch, tab, course, page, limit: PAGE_SIZE }),
     [debouncedSearch, tab, course, page],
   )
+  const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
+  const courseOptions = (coursesData?.data ?? []).map((c) => ({ value: c.id, label: c.name }))
 
   const tabs = useMemo(
     () => buildStudentTabs(data?.meta?.tabs ?? { all: 0, active: 0, banned: 0 }),
@@ -67,7 +70,7 @@ export function StudentsListShell() {
           />
           <FilterSelect
             label={STUDENT_FILTERS.courseSortLabel}
-            options={[...STUDENT_FILTERS.courseSortOptions]}
+            options={courseOptions}
             width={171}
             value={course}
             onChange={(v) => {

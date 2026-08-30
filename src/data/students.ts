@@ -30,15 +30,10 @@ export function buildStudentTabs(counts: {
   return STUDENT_TABS_META.map((t) => ({ label: t.label, count: counts[t.key] }))
 }
 
-/** filter-row — node 7:991. courseSortOptions لسه ثابتة (دومين Courses لسه مش مبني) */
+/** filter-row — node 7:991. خيارات الكورس بتتجاب لايف من listCourses (شوف StudentsList) */
 export const STUDENT_FILTERS = {
   searchPlaceholder: 'بحث بالاسم أو الإيميل...',
   courseSortLabel: 'ترتيب بحسب الكورس',
-  courseSortOptions: [
-    'أساسيات التشريح — الترم الأول',
-    'علم وظائف الأعضاء (Physiology)',
-    'الكيمياء الحيوية الطبية',
-  ],
 } as const
 
 /* -------------------------------------------------------------------------- */

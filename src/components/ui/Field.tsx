@@ -43,6 +43,8 @@ export function SearchField({
 }
 
 /** دروب داون تصفية — فيجما node 13:23: السهم يسار والعنوان يمينه */
+export type FilterSelectOption = string | { value: string; label: string }
+
 export function FilterSelect({
   label,
   options = [],
@@ -52,7 +54,7 @@ export function FilterSelect({
   onChange,
 }: {
   label: string
-  options?: string[]
+  options?: FilterSelectOption[]
   className?: string
   width?: number
   /** لو اتمرر، الحقل بيبقى controlled */
@@ -74,11 +76,14 @@ export function FilterSelect({
         className="h-full w-full cursor-pointer appearance-none bg-transparent ps-4 pe-9 text-right text-base text-ink outline-none"
       >
         <option value="">{label}</option>
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
+        {options.map((o) => {
+          const opt = typeof o === 'string' ? { value: o, label: o } : o
+          return (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          )
+        })}
       </select>
       <ChevronDown
         className="pointer-events-none absolute left-4 size-3 text-muted"
