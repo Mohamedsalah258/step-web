@@ -129,7 +129,11 @@ export function studentColumns(
       key: 'email',
       header: 'البريد الإلكتروني',
       width: 200,
-      render: (r) => <span className="num text-muted">{r.email}</span>,
+      render: (r) => (
+        <Truncate>
+          <span className="num text-muted">{r.email}</span>
+        </Truncate>
+      ),
     },
     {
       key: 'phone',
@@ -439,7 +443,12 @@ export function StudentProfileCard({
   onBan: () => void
   onProfileLockChanged: () => void
 }) {
-  const initials = student.name.split(' ')[0] ?? student.name
+  const initials = student.name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join(' ')
   const [profileLockSubmitting, setProfileLockSubmitting] = useState(false)
   const l = STUDENT_DETAIL_LABELS
 
