@@ -57,6 +57,9 @@ export const STATUS_TONE: Record<string, BadgeTone> = {
   'تم الحل': 'success',
   مغلقة: 'neutral',
   ملغاة: 'danger',
+  // حالات قفل/فتح تعديل البروفايل
+  مقفول: 'warning',
+  مفتوح: 'success',
 }
 
 export function StatusBadge({ status }: { status: string }) {
