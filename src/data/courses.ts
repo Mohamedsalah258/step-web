@@ -168,6 +168,8 @@ export const EDIT_VIDEO_MODAL = {
   title: 'تعديل بيانات الفيديو',
   titleLabel: 'عنوان الفيديو',
   descLabel: 'وصف الفيديو',
+  urlLabel: 'رابط الفيديو',
+  urlPlaceholder: 'https://www.youtube.com/watch?v=...',
   fileName: 'فيديو مرفوع',
   fileMeta: 'فيديو محمي HLS',
   replaceBtn: 'تغيير الفيديو',

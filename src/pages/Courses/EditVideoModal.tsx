@@ -27,6 +27,7 @@ export default function EditVideoModal() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [order, setOrder] = useState('')
+  const [externalUrl, setExternalUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -37,6 +38,7 @@ export default function EditVideoModal() {
       setTitle(video.title)
       setDescription(video.description ?? '')
       setOrder(String(video.order))
+      setExternalUrl(video.externalUrl ?? '')
     }
   }, [video])
 
@@ -46,7 +48,12 @@ export default function EditVideoModal() {
     setSubmitting(true)
     setSubmitError(null)
     try {
-      await updateContentItem(videoId, { title, description, order: Number(order) || 0 })
+      await updateContentItem(videoId, {
+        title,
+        description,
+        order: Number(order) || 0,
+        ...(video?.externalUrl ? { externalUrl } : {}),
+      })
       onDataChanged()
       navigate(-1)
     } catch (err) {
@@ -69,7 +76,15 @@ export default function EditVideoModal() {
         actions={
           <>
             <ModalButton variant="cancel">{M.cancel}</ModalButton>
-            <ModalButton onClick={handleConfirm} disabled={submitting || !title.trim() || !video}>
+            <ModalButton
+              onClick={handleConfirm}
+              disabled={
+                submitting ||
+                !title.trim() ||
+                !video ||
+                (!!video?.externalUrl && !externalUrl.trim())
+              }
+            >
               {submitting ? '...جاري الحفظ' : M.submit}
             </ModalButton>
           </>
@@ -90,7 +105,12 @@ export default function EditVideoModal() {
             />
             <ModalField label="الترتيب" value={order} onChange={setOrder} type="number" mono />
             {video.externalUrl ? (
-              <FilePlate name={video.externalUrl} meta="رابط خارجي" action="—" />
+              <ModalField
+                label={M.urlLabel}
+                placeholder={M.urlPlaceholder}
+                value={externalUrl}
+                onChange={setExternalUrl}
+              />
             ) : (
               <FilePlate name={M.fileName} meta={M.fileMeta} action={M.replaceBtn} />
             )}
