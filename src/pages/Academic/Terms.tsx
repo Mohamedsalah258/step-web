@@ -99,17 +99,25 @@ export default function Terms() {
     () => listTerms({ parentId: stageId }),
     [stageId, refreshKey],
   )
-  const termIds = (data?.data ?? []).map((t) => t.id)
+  /**
+   * /courses مش بيقبل فلترة بـ termId (اتأكدنا من Swagger: q/collegeId/tab/page/limit بس)،
+   * فبنجيب كورسات الكلية دي بس ونفلتر على اسم الترم (يطابق ترمات المرحلة الحالية)
+   * على مستوى الفرونت. لو مفيش collegeId في الرابط أصلاً (عرض غير مفلتر)، نرجع
+   * لعرض عيّنة عامة زي الأول.
+   */
+  const termNames = new Set((data?.data ?? []).map((t) => t.name))
+  const termNamesKey = [...termNames].sort().join(',')
   const {
     data: coursesData,
     loading: coursesLoading,
     error: coursesError,
     reload: reloadCourses,
   } = useAsync(async () => {
-    if (termIds.length === 0) return { data: [] as ApiCourseListItem[] }
-    const results = await Promise.all(termIds.map((termId) => listCourses({ termId, limit: 50 })))
-    return { data: results.flatMap((r) => r.data) }
-  }, [termIds.join(','), refreshKey])
+    if (!collegeId) return listCourses({ limit: 10 })
+    if (termNames.size === 0) return { data: [] as ApiCourseListItem[] }
+    const result = await listCourses({ collegeId, limit: 100 })
+    return { data: result.data.filter((c) => termNames.has(c.term)) }
+  }, [collegeId, termNamesKey, refreshKey])
   const stagesBackTo = academicPath('/academic/stages', {
     parentId: specializationId,
     collegeId,
