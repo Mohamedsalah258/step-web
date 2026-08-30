@@ -105,7 +105,13 @@ export default function Specializations() {
           >
             العودة للكليات
           </ButtonLink>
-          <ButtonLink to="/academic/specializations/add" icon={Plus}>
+          <ButtonLink
+            to={academicPath('/academic/specializations/add', {
+              parentId: collegeId,
+              universityId,
+            })}
+            icon={Plus}
+          >
             إضافة تخصص
           </ButtonLink>
         </>

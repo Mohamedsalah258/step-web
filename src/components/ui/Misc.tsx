@@ -139,13 +139,22 @@ export function InfoGrid({
   cols = 2,
 }: {
   items: Array<{ label: string; value: React.ReactNode }>
-  cols?: 2 | 3
+  /**
+   * ⚠️ الـ md: هنا مبني على عرض الفيوبورت مش عرض الحاوية — لو الكارت
+   * نفسه ضيق (زي عمود جانبي 320px) استخدم cols={1}، وإلا الشبكة هتحاول
+   * تعمل عمودين جوه مساحة ضيقة والنص هيتزنق فوق بعضه.
+   */
+  cols?: 1 | 2 | 3
 }) {
   return (
     <div
       className={cn(
         'grid gap-y-4 gap-x-8',
-        cols === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2',
+        cols === 1
+          ? 'grid-cols-1'
+          : cols === 3
+            ? 'grid-cols-1 md:grid-cols-3'
+            : 'grid-cols-1 md:grid-cols-2',
       )}
     >
       {items.map((it) => (

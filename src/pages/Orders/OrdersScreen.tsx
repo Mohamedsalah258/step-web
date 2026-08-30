@@ -11,6 +11,7 @@ import { useAsync } from '@/lib/useAsync'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { listOrders } from '@/api/orders'
 import { listCourses } from '@/api/courses'
+import { listColleges, listSpecializations, listUniversities } from '@/api/academic'
 import { ORDER_FILTERS, ORDERS_PAGE_TITLE } from '@/data/orders'
 import { orderColumns, OrderDetailDrawer } from './orders-parts'
 
@@ -47,6 +48,9 @@ export function OrdersShell({
   const [searchInput, setSearchInput] = useState('')
   const [date, setDate] = useState('')
   const [courseId, setCourseId] = useState('')
+  const [universityId, setUniversityId] = useState('')
+  const [collegeId, setCollegeId] = useState('')
+  const [specializationId, setSpecializationId] = useState('')
   const [page, setPage] = useState(1)
   const [openId, setOpenId] = useState<string | null>(autoOpenId ?? null)
 
@@ -54,12 +58,28 @@ export function OrdersShell({
   const tab = TAB_META[tabIndex]?.key ?? 'all'
 
   const { data, loading, error, reload } = useAsync(
-    () => listOrders({ q: debouncedSearch, tab, date, courseId, page, limit: PAGE_SIZE }),
-    [debouncedSearch, tab, date, courseId, page],
+    () => listOrders({ q: debouncedSearch, tab, date, courseId, universityId, collegeId, specializationId, page, limit: PAGE_SIZE }),
+    [debouncedSearch, tab, date, courseId, universityId, collegeId, specializationId, page],
   )
 
   const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
   const courses = coursesData?.data ?? []
+
+  /** تسلسل جامعة→كلية→تخصص — نفس منطق الكاسكيد في Notifications.tsx */
+  const { data: universitiesData } = useAsync(() => listUniversities({ limit: 100 }), [])
+  const universities = universitiesData?.data ?? []
+
+  const { data: collegesData } = useAsync(
+    () => listColleges({ parentId: universityId || undefined, limit: 100 }),
+    [universityId],
+  )
+  const colleges = universityId ? (collegesData?.data ?? []) : []
+
+  const { data: specializationsData } = useAsync(
+    () => listSpecializations({ parentId: collegeId || undefined, limit: 100 }),
+    [collegeId],
+  )
+  const specializations = collegeId ? (specializationsData?.data ?? []) : []
 
   const tabs = useMemo(() => {
     const counts = data?.meta?.tabs ?? { all: 0, pending: 0, approved: 0, rejected: 0 }
@@ -115,6 +135,43 @@ export function OrdersShell({
           value={courses.find((c) => c.id === courseId)?.name ?? ''}
           onChange={(name) => {
             setCourseId(courses.find((c) => c.name === name)?.id ?? '')
+            setPage(1)
+          }}
+        />
+      </div>
+
+      {/* فلاتر الهيكل الأكاديمي — جامعة→كلية→تخصص، نفس الكاسكيد المستخدم في Notifications */}
+      <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+        <FilterSelect
+          label={ORDER_FILTERS.universityLabel}
+          options={universities.map((u) => ({ value: u.id, label: u.name }))}
+          width={180}
+          value={universityId}
+          onChange={(v) => {
+            setUniversityId(v)
+            setCollegeId('')
+            setSpecializationId('')
+            setPage(1)
+          }}
+        />
+        <FilterSelect
+          label={ORDER_FILTERS.collegeLabel}
+          options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+          width={180}
+          value={collegeId}
+          onChange={(v) => {
+            setCollegeId(v)
+            setSpecializationId('')
+            setPage(1)
+          }}
+        />
+        <FilterSelect
+          label={ORDER_FILTERS.specializationLabel}
+          options={specializations.map((s) => ({ value: s.id, label: s.name }))}
+          width={180}
+          value={specializationId}
+          onChange={(v) => {
+            setSpecializationId(v)
             setPage(1)
           }}
         />

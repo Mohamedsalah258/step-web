@@ -38,6 +38,9 @@ type ListOrdersParams = {
   tab?: 'all' | 'pending' | 'approved' | 'rejected'
   date?: string
   courseId?: string
+  universityId?: string
+  collegeId?: string
+  specializationId?: string
   page?: number
   limit?: number
 }

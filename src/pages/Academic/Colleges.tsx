@@ -69,7 +69,7 @@ function buildColumns(universityId: string | undefined): Column<ApiCollegeRow>[]
           icon={Settings}
           label="إعدادات الكلية"
           tone="brand"
-          to={`/academic/colleges/${r.id}/edit`}
+          to={academicPath(`/academic/colleges/${r.id}/edit`, { parentId: universityId })}
         />
       </RowActions>
     ),
@@ -103,7 +103,10 @@ export default function Colleges() {
           >
             عودة للجامعات
           </ButtonLink>
-          <ButtonLink to="/academic/colleges/add" icon={Plus}>
+          <ButtonLink
+            to={academicPath('/academic/colleges/add', { parentId: universityId })}
+            icon={Plus}
+          >
             إضافة كلية جديدة
           </ButtonLink>
         </>

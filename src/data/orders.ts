@@ -3,6 +3,9 @@ export const ORDER_FILTERS = {
   searchPlaceholder: 'بحث بالاسم أو الرقم المرجعي...',
   dateLabel: 'التاريخ',
   courseLabel: 'كل الكورسات',
+  universityLabel: 'الجامعة',
+  collegeLabel: 'الكلية',
+  specializationLabel: 'التخصص',
 } as const
 
 /** عنوان الشاشة في الـ top-bar — node 7:269 */

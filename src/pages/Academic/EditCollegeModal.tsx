@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Modal,
   ModalButton,
@@ -16,6 +16,7 @@ type AcademicOutletContext = { onDataChanged: () => void }
 export default function EditCollegeModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { search } = useLocation()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listColleges({ limit: 100 }), [])
   const college = data?.data.find((c) => c.id === id)
@@ -75,7 +76,7 @@ export default function EditCollegeModal() {
           />
           <ModalDangerZone
             label="حذف الكلية"
-            onClick={() => navigate(`/academic/colleges/${id}/delete`)}
+            onClick={() => navigate(`/academic/colleges/${id}/delete${search}`)}
           />
           {submitError ? <p className="text-sm font-bold text-danger">{submitError}</p> : null}
         </>

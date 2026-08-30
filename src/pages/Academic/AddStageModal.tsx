@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import {
   Modal,
   ModalButton,
@@ -17,6 +17,8 @@ type AcademicOutletContext = { onDataChanged: () => void }
 /** فيجما frame: v3-add-stage-modal (node 2003:3567) — modal-card 2003:3683 */
 export default function AddStageModal() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const presetSpecializationId = params.get('parentId') ?? undefined
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listSpecializations({ limit: 100 }), [])
   const specializations = data?.data ?? []
@@ -27,8 +29,12 @@ export default function AddStageModal() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  /** لو جاي من صفحة مراحل تخصص محدد، التخصص بيتقفل تلقائي (شوف AddCollegeModal) */
+  const presetSpecialization = presetSpecializationId
+    ? specializations.find((s) => s.id === presetSpecializationId)
+    : undefined
   const selectedSpecialization =
-    specializations.find((s) => s.name === specializationName) ?? specializations[0]
+    presetSpecialization ?? specializations.find((s) => s.name === specializationName)
 
   const handleConfirm = async () => {
     if (!selectedSpecialization) return
@@ -72,8 +78,9 @@ export default function AddStageModal() {
           <ModalSelect
             label={M.specializationLabel}
             options={specializations.map((s) => s.name)}
-            value={specializationName || selectedSpecialization?.name}
+            value={selectedSpecialization?.name ?? ''}
             onChange={setSpecializationName}
+            disabled={!!presetSpecialization}
           />
           <ModalField
             label={M.nameLabel}

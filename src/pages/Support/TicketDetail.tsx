@@ -158,7 +158,7 @@ export default function TicketDetail() {
               <CardHeader title={TICKET_DETAIL_SECTIONS.student} />
               <CardBody>
                 <InfoGrid
-                  cols={2}
+                  cols={1}
                   items={[
                     { label: 'الاسم:', value: ticket.student.name },
                     { label: 'رقم الهاتف:', value: ticket.student.phone },
@@ -172,7 +172,7 @@ export default function TicketDetail() {
               <CardHeader title={TICKET_DETAIL_SECTIONS.ticket} />
               <CardBody>
                 <InfoGrid
-                  cols={2}
+                  cols={1}
                   items={[
                     { label: 'المتابع:', value: ticket.assignedAdminName ?? '—' },
                     { label: 'تاريخ الإنشاء:', value: formatDateTime(ticket.createdAt) },

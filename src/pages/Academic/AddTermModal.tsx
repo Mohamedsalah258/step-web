@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import {
   Modal,
   ModalButton,
@@ -17,6 +17,8 @@ type AcademicOutletContext = { onDataChanged: () => void }
 /** فيجما frame: v3-add-term-modal (node 2003:3727) — modal-card 2003:3843 */
 export default function AddTermModal() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const presetStageId = params.get('parentId') ?? undefined
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listStages({ limit: 100 }), [])
   const stages = data?.data ?? []
@@ -27,7 +29,9 @@ export default function AddTermModal() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const selectedStage = stages.find((s) => s.name === stageName) ?? stages[0]
+  /** لو جاي من صفحة ترمات مرحلة محددة، المرحلة بتتقفل تلقائي (شوف AddCollegeModal) */
+  const presetStage = presetStageId ? stages.find((s) => s.id === presetStageId) : undefined
+  const selectedStage = presetStage ?? stages.find((s) => s.name === stageName)
 
   const handleConfirm = async () => {
     if (!selectedStage) return
@@ -71,8 +75,9 @@ export default function AddTermModal() {
           <ModalSelect
             label={M.stageLabel}
             options={stages.map((s) => s.name)}
-            value={stageName || selectedStage?.name}
+            value={selectedStage?.name ?? ''}
             onChange={setStageName}
+            disabled={!!presetStage}
           />
           <ModalField
             label={M.nameLabel}

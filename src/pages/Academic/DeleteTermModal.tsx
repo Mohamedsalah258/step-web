@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { Modal, ModalButton, ModalNotice } from '@/components/ui/Modal'
 import { CardSkeleton, ErrorState } from '@/components/ui/States'
 import { useAsync } from '@/lib/useAsync'
@@ -10,6 +10,7 @@ type AcademicOutletContext = { onDataChanged: () => void }
 export default function DeleteTermModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { search } = useLocation()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listTerms({ limit: 100 }), [])
   const term = data?.data.find((t) => t.id === id)
@@ -25,7 +26,7 @@ export default function DeleteTermModal() {
     try {
       await deleteTerm(id)
       onDataChanged()
-      navigate('/academic/terms')
+      navigate(`/academic/terms${search}`)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
       setSubmitting(false)

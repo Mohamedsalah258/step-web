@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { Modal, ModalButton, ModalNotice } from '@/components/ui/Modal'
 import { CardSkeleton, ErrorState } from '@/components/ui/States'
 import { useAsync } from '@/lib/useAsync'
@@ -10,6 +10,7 @@ type AcademicOutletContext = { onDataChanged: () => void }
 export default function DeleteSpecializationModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { search } = useLocation()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listSpecializations({ limit: 100 }), [])
   const specialization = data?.data.find((s) => s.id === id)
@@ -25,7 +26,7 @@ export default function DeleteSpecializationModal() {
     try {
       await deleteSpecialization(id)
       onDataChanged()
-      navigate('/academic/specializations')
+      navigate(`/academic/specializations${search}`)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
       setSubmitting(false)

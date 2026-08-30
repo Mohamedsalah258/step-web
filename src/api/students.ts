@@ -60,7 +60,12 @@ export type ApiStudentDetail = {
 export function listStudents(params: {
   q?: string
   tab?: StudentsTab
+  /** بحث نصي (ILIKE) باسم الكورس — استخدم courseId للمطابقة الدقيقة بمعرّف */
   course?: string
+  courseId?: string
+  universityId?: string
+  collegeId?: string
+  specializationId?: string
   page?: number
   limit?: number
 }) {
@@ -68,6 +73,10 @@ export function listStudents(params: {
     q: params.q,
     tab: params.tab,
     course: params.course,
+    courseId: params.courseId,
+    universityId: params.universityId,
+    collegeId: params.collegeId,
+    specializationId: params.specializationId,
     page: params.page,
     limit: params.limit,
   })

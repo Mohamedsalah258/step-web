@@ -34,6 +34,9 @@ export function buildStudentTabs(counts: {
 export const STUDENT_FILTERS = {
   searchPlaceholder: 'بحث بالاسم أو الإيميل...',
   courseSortLabel: 'ترتيب بحسب الكورس',
+  universityLabel: 'الجامعة',
+  collegeLabel: 'الكلية',
+  specializationLabel: 'التخصص',
 } as const
 
 /* -------------------------------------------------------------------------- */

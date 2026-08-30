@@ -115,7 +115,14 @@ export default function Stages() {
           >
             العودة للتخصصات
           </ButtonLink>
-          <ButtonLink to="/academic/stages/add" icon={Plus}>
+          <ButtonLink
+            to={academicPath('/academic/stages/add', {
+              parentId: specializationId,
+              collegeId,
+              universityId,
+            })}
+            icon={Plus}
+          >
             إضافة مرحلة
           </ButtonLink>
         </>

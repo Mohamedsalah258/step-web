@@ -57,7 +57,7 @@ export default function ReportStudents() {
   const [filters, setFilters] = useReportFilters()
   const { data, loading, error, reload } = useAsync(
     () => getStudentsReport(filters),
-    [filters.from, filters.to, filters.compare],
+    [filters.from, filters.to, filters.compare, filters.universityId, filters.collegeId, filters.specializationId],
   )
 
   const stats: Stat[] = data

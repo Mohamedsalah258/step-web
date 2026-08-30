@@ -211,12 +211,15 @@ export function ModalSelect({
   options,
   value,
   onChange,
+  disabled,
 }: {
   label: string
   options: string[]
   value?: string
   /** لو اتمرر، الحقل بيبقى controlled */
   onChange?: (value: string) => void
+  /** لما القيمة معروفة/مقفولة من السياق (زي أب مُحدَّد بالفعل من التنقل) */
+  disabled?: boolean
 }) {
   return (
     <label className="flex w-full flex-col items-start gap-1.5">
@@ -225,7 +228,8 @@ export function ModalSelect({
         value={onChange ? value : undefined}
         defaultValue={onChange ? undefined : value}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        className="h-11 w-full rounded-ctl border border-line bg-white px-3 text-right text-base text-ink outline-none transition-colors focus:border-brand"
+        disabled={disabled}
+        className="h-11 w-full rounded-ctl border border-line bg-white px-3 text-right text-base text-ink outline-none transition-colors focus:border-brand disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted"
       >
         {/*
          * ⚠️ من غير option placeholder، لو الـ value الحالية '' (لسه محددتش)

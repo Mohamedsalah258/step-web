@@ -11,7 +11,7 @@ import { cn } from '@/lib/cn'
 import { formatDateTime, timeAgo } from '@/lib/format'
 import { useAsync } from '@/lib/useAsync'
 import { listCourses } from '@/api/courses'
-import { listStages, listTerms } from '@/api/academic'
+import { listColleges, listSpecializations, listStages, listTerms, listUniversities } from '@/api/academic'
 import {
   getAdminAlerts,
   getAudiencePreview,
@@ -73,24 +73,62 @@ export default function Notifications() {
 
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [courseName, setCourseName] = useState(ALL)
+  const [universityName, setUniversityName] = useState(ALL)
+  const [collegeName, setCollegeName] = useState(ALL)
+  const [specializationName, setSpecializationName] = useState(ALL)
   const [stageName, setStageName] = useState(ALL)
   const [termName, setTermName] = useState(ALL)
+  const [courseName, setCourseName] = useState(ALL)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
   const [sendSuccess, setSendSuccess] = useState(false)
 
-  const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
-  const courses = coursesData?.data ?? []
-  const course = courseName === ALL ? undefined : courses.find((c) => c.name === courseName)
+  /*
+   * سلسلة استهداف متتابعة (جامعة → كلية → تخصص → مرحلة → ترم → كورس)، نفس
+   * منطق AddCourseModal بالظبط: كل مستوى بيصفّي اللي بعده. ⚠️ الباك اند
+   * حاليًا بيقبل courseId/stageId/termId بس في /notifications — جامعة/كلية/
+   * تخصص هنا بيصفّوا القوايم عشان تلاقي المرحلة/الترم الصح بسهولة، لكنهم
+   * مش بيتبعتوا كفلتر مستقل لحد ما فريق الباك اند يضيف دعمهم.
+   */
+  const { data: universitiesData } = useAsync(() => listUniversities({ limit: 100 }), [])
+  const universities = universitiesData?.data ?? []
+  const university = universityName === ALL ? undefined : universities.find((u) => u.name === universityName)
 
-  const { data: stagesData } = useAsync(() => listStages({ limit: 100 }), [])
-  const stages = stagesData?.data ?? []
+  const { data: collegesData } = useAsync(
+    () => listColleges({ parentId: university?.id, limit: 100 }),
+    [university?.id],
+  )
+  const colleges = university ? (collegesData?.data ?? []) : []
+  const college = collegeName === ALL ? undefined : colleges.find((c) => c.name === collegeName)
+
+  const { data: specializationsData } = useAsync(
+    () => listSpecializations({ parentId: college?.id, limit: 100 }),
+    [college?.id],
+  )
+  const specializations = college ? (specializationsData?.data ?? []) : []
+  const specialization =
+    specializationName === ALL ? undefined : specializations.find((s) => s.name === specializationName)
+
+  const { data: stagesData } = useAsync(
+    () => listStages({ parentId: specialization?.id, limit: 100 }),
+    [specialization?.id],
+  )
+  const stages = specialization ? (stagesData?.data ?? []) : []
   const stage = stageName === ALL ? undefined : stages.find((s) => s.name === stageName)
 
-  const { data: termsData } = useAsync(() => listTerms({ limit: 100 }), [])
-  const terms = termsData?.data ?? []
+  const { data: termsData } = useAsync(
+    () => listTerms({ parentId: stage?.id, limit: 100 }),
+    [stage?.id],
+  )
+  const terms = stage ? (termsData?.data ?? []) : []
   const term = termName === ALL ? undefined : terms.find((t) => t.name === termName)
+
+  const { data: coursesData } = useAsync(
+    () => listCourses({ collegeId: college?.id, limit: 100 }),
+    [college?.id],
+  )
+  const courses = college ? (coursesData?.data ?? []) : []
+  const course = courseName === ALL ? undefined : courses.find((c) => c.name === courseName)
 
   const { data: audience, loading: audienceLoading } = useAsync(
     () => getAudiencePreview({ courseId: course?.id, stageId: stage?.id, termId: term?.id }),
@@ -126,9 +164,12 @@ export default function Notifications() {
       })
       setTitle('')
       setBody('')
-      setCourseName(ALL)
+      setUniversityName(ALL)
+      setCollegeName(ALL)
+      setSpecializationName(ALL)
       setStageName(ALL)
       setTermName(ALL)
+      setCourseName(ALL)
       setSendSuccess(true)
       reloadHistory()
     } catch (err) {
@@ -171,7 +212,7 @@ export default function Notifications() {
             />
           </div>
 
-          {/* targeting-fields — node 29:1480 */}
+          {/* targeting-fields — node 29:1480، امتداد لتسلسل جامعة→كلية→تخصص→مرحلة→ترم→كورس */}
           <div className="flex flex-col gap-3">
             <span className="text-right text-sm font-bold text-ink">
               {NOTIFY_FORM.targetingLabel}
@@ -179,17 +220,54 @@ export default function Notifications() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <SelectField
                 className="min-w-0 flex-1"
-                label={NOTIFY_FORM.courseLabel}
-                options={[ALL, ...courses.map((c) => c.name)]}
-                value={courseName}
-                onChange={setCourseName}
+                label={NOTIFY_FORM.universityLabel}
+                options={[ALL, ...universities.map((u) => u.name)]}
+                value={universityName}
+                onChange={(v) => {
+                  setUniversityName(v)
+                  setCollegeName(ALL)
+                  setSpecializationName(ALL)
+                  setStageName(ALL)
+                  setTermName(ALL)
+                  setCourseName(ALL)
+                }}
+              />
+              <SelectField
+                className="min-w-0 flex-1"
+                label={NOTIFY_FORM.collegeLabel}
+                options={[ALL, ...colleges.map((c) => c.name)]}
+                value={collegeName}
+                onChange={(v) => {
+                  setCollegeName(v)
+                  setSpecializationName(ALL)
+                  setStageName(ALL)
+                  setTermName(ALL)
+                  setCourseName(ALL)
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <SelectField
+                className="min-w-0 flex-1"
+                label={NOTIFY_FORM.specializationLabel}
+                options={[ALL, ...specializations.map((s) => s.name)]}
+                value={specializationName}
+                onChange={(v) => {
+                  setSpecializationName(v)
+                  setStageName(ALL)
+                  setTermName(ALL)
+                  setCourseName(ALL)
+                }}
               />
               <SelectField
                 className="min-w-0 flex-1"
                 label={NOTIFY_FORM.stageLabel}
                 options={[ALL, ...stages.map((s) => s.name)]}
                 value={stageName}
-                onChange={setStageName}
+                onChange={(v) => {
+                  setStageName(v)
+                  setTermName(ALL)
+                }}
               />
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -200,7 +278,13 @@ export default function Notifications() {
                 value={termName}
                 onChange={setTermName}
               />
-              <div className="min-w-0 flex-1" />
+              <SelectField
+                className="min-w-0 flex-1"
+                label={NOTIFY_FORM.courseLabel}
+                options={[ALL, ...courses.map((c) => c.name)]}
+                value={courseName}
+                onChange={setCourseName}
+              />
             </div>
           </div>
 

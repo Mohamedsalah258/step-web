@@ -3,10 +3,25 @@ import { getToken } from '@/lib/token'
 
 export type ApiChartPoint = { label: string; value: number }
 
-export type ReportQueryParams = { from?: string; to?: string; compare?: boolean }
+export type ReportQueryParams = {
+  from?: string
+  to?: string
+  compare?: boolean
+  universityId?: string
+  collegeId?: string
+  specializationId?: string
+}
 
+/** ⚠️ /reports/devices بياخد نفس شكل الاستعلام لكنه بيتجاهل فلتر الهيكل الأكاديمي حاليًا (مفيش علاقة كورس) */
 function toParams(p: ReportQueryParams) {
-  return { from: p.from, to: p.to, compare: p.compare ? 'true' : undefined }
+  return {
+    from: p.from,
+    to: p.to,
+    compare: p.compare ? 'true' : undefined,
+    universityId: p.universityId || undefined,
+    collegeId: p.collegeId || undefined,
+    specializationId: p.specializationId || undefined,
+  }
 }
 
 export type ApiRevenueReport = {

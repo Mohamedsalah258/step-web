@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Page } from '@/components/layout/Page'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -168,15 +168,21 @@ export function PillButton({
   )
 }
 
-/** عمود الإجراءات في شاشات التخصصات/المراحل/الترمات — RTL: تعديل يمين وحذف شمال */
+/**
+ * عمود الإجراءات في شاشات التخصصات/المراحل/الترمات — RTL: تعديل يمين وحذف شمال.
+ * ⚠️ لازم نلحق search الصفحة الحالية (?parentId=...) بمسار التعديل/الحذف،
+ * وإلا الصفحة اللي وراء المودال بترجع "كل العناصر" (من غير فلترة) بدل ما
+ * تفضل عارضة نفس النطاق المفلتر — وده اللي بيبان وكأنه عنصر مكرر ظهر فجأة.
+ */
 export function EditDeletePills({ editTo, deleteTo }: { editTo: string; deleteTo: string }) {
   const navigate = useNavigate()
+  const { search } = useLocation()
   return (
     <RowActions>
-      <PillButton tone="brand" onClick={() => navigate(editTo)}>
+      <PillButton tone="brand" onClick={() => navigate(`${editTo}${search}`)}>
         تعديل
       </PillButton>
-      <PillButton tone="danger" onClick={() => navigate(deleteTo)}>
+      <PillButton tone="danger" onClick={() => navigate(`${deleteTo}${search}`)}>
         حذف
       </PillButton>
     </RowActions>

@@ -10,6 +10,7 @@ import { useAsync } from '@/lib/useAsync'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { listStudents } from '@/api/students'
 import { listCourses } from '@/api/courses'
+import { listColleges, listSpecializations, listUniversities } from '@/api/academic'
 import {
   STUDENT_FILTERS,
   STUDENTS_TITLE,
@@ -28,17 +29,38 @@ export function StudentsListShell() {
   const [tabIndex, setTabIndex] = useState(0)
   const [searchInput, setSearchInput] = useState('')
   const [course, setCourse] = useState('')
+  const [universityId, setUniversityId] = useState('')
+  const [collegeId, setCollegeId] = useState('')
+  const [specializationId, setSpecializationId] = useState('')
   const [page, setPage] = useState(1)
 
   const debouncedSearch = useDebouncedValue(searchInput, 400)
   const tab: StudentsTab = STUDENT_TABS_META[tabIndex]?.key ?? 'all'
 
   const { data, loading, error, reload } = useAsync(
-    () => listStudents({ q: debouncedSearch, tab, course, page, limit: PAGE_SIZE }),
-    [debouncedSearch, tab, course, page],
+    () => listStudents({ q: debouncedSearch, tab, course, universityId, collegeId, specializationId, page, limit: PAGE_SIZE }),
+    [debouncedSearch, tab, course, universityId, collegeId, specializationId, page],
   )
   const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
-  const courseOptions = (coursesData?.data ?? []).map((c) => ({ value: c.id, label: c.name }))
+  /** ⚠️ الباك اند بيفلتر `/students?course=` بمطابقة نصية (ILIKE) على اسم الكورس،
+   * مش بمعرّف — لازم القيمة المتبعتة تكون اسم الكورس نفسه، مش الـ id. */
+  const courseOptions = (coursesData?.data ?? []).map((c) => c.name)
+
+  /** تسلسل جامعة→كلية→تخصص — نفس منطق الكاسكيد في Notifications.tsx */
+  const { data: universitiesData } = useAsync(() => listUniversities({ limit: 100 }), [])
+  const universities = universitiesData?.data ?? []
+
+  const { data: collegesData } = useAsync(
+    () => listColleges({ parentId: universityId || undefined, limit: 100 }),
+    [universityId],
+  )
+  const colleges = universityId ? (collegesData?.data ?? []) : []
+
+  const { data: specializationsData } = useAsync(
+    () => listSpecializations({ parentId: collegeId || undefined, limit: 100 }),
+    [collegeId],
+  )
+  const specializations = collegeId ? (specializationsData?.data ?? []) : []
 
   const tabs = useMemo(
     () => buildStudentTabs(data?.meta?.tabs ?? { all: 0, active: 0, banned: 0 }),
@@ -79,6 +101,43 @@ export function StudentsListShell() {
             }}
           />
         </div>
+      </div>
+
+      {/* فلاتر الهيكل الأكاديمي — جامعة→كلية→تخصص، نفس الكاسكيد المستخدم في Notifications */}
+      <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+        <FilterSelect
+          label={STUDENT_FILTERS.universityLabel}
+          options={universities.map((u) => ({ value: u.id, label: u.name }))}
+          width={180}
+          value={universityId}
+          onChange={(v) => {
+            setUniversityId(v)
+            setCollegeId('')
+            setSpecializationId('')
+            setPage(1)
+          }}
+        />
+        <FilterSelect
+          label={STUDENT_FILTERS.collegeLabel}
+          options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+          width={180}
+          value={collegeId}
+          onChange={(v) => {
+            setCollegeId(v)
+            setSpecializationId('')
+            setPage(1)
+          }}
+        />
+        <FilterSelect
+          label={STUDENT_FILTERS.specializationLabel}
+          options={specializations.map((s) => ({ value: s.id, label: s.name }))}
+          width={180}
+          value={specializationId}
+          onChange={(v) => {
+            setSpecializationId(v)
+            setPage(1)
+          }}
+        />
       </div>
 
       {/* data-table-card — node 7:1015 */}

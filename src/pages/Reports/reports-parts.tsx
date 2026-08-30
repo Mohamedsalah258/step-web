@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { RouteTabs } from '@/components/ui/Tabs'
 import { Checkbox, DateField, FilterSelect } from '@/components/ui/Field'
 import { VBarChart } from '@/components/charts/Charts'
+import { useAsync } from '@/lib/useAsync'
+import { listColleges, listSpecializations, listUniversities } from '@/api/academic'
 import { downloadReport, type ReportKind } from '@/api/reports'
 import { REPORT_TABS } from '@/data/reports'
 
@@ -19,7 +21,14 @@ export function ReportTabs() {
   return <RouteTabs items={REPORT_TABS} />
 }
 
-export type ReportFilterState = { from: string; to: string; compare: boolean }
+export type ReportFilterState = {
+  from: string
+  to: string
+  compare: boolean
+  universityId: string
+  collegeId: string
+  specializationId: string
+}
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -34,7 +43,7 @@ function isoDate(d: Date): string {
 function defaultRange(): ReportFilterState {
   const to = new Date()
   const from = new Date(to.getTime() - 29 * 24 * 60 * 60 * 1000)
-  return { from: isoDate(from), to: isoDate(to), compare: false }
+  return { from: isoDate(from), to: isoDate(to), compare: false, universityId: '', collegeId: '', specializationId: '' }
 }
 
 /** حالة الفلاتر (تاريخ + مقارنة) — مشتركة بين الصفحات الأربعة */
@@ -45,10 +54,10 @@ export function useReportFilters(): [ReportFilterState, (v: Partial<ReportFilter
 }
 
 /**
- * filters-card — node 37:1060: تجميع بحسب / نطاق التاريخ (من - إلى) /
- * مقارنة بالفترة السابقة — الثلاثة شغالين فعليًا (بيغيّروا نتيجة الاستعلام
- * الحقيقي). "تجميع بحسب" فيه خيار حقيقي واحد بس (الكلية) حاليًا — التجميعات
- * التانية (مرحلة/تخصص) مش موجودة كاستعلام حقيقي لسه.
+ * filters-card — node 37:1060: استهداف بالهيكل الأكاديمي (جامعة→كلية→تخصص) /
+ * نطاق التاريخ (من - إلى) / مقارنة بالفترة السابقة — الأربعة شغالين فعليًا
+ * (بيغيّروا نتيجة الاستعلام الحقيقي). كان هنا قبل كده دروب داون "تجميع بحسب"
+ * وهمي (خيار واحد ثابت، onChange فاضي) — استُبدل بفلتر حقيقي بمعرّفات.
  */
 export function ReportFilters({
   value,
@@ -59,13 +68,48 @@ export function ReportFilters({
   onChange: (v: Partial<ReportFilterState>) => void
   report: ReportKind
 }) {
+  const { data: universitiesData } = useAsync(() => listUniversities({ limit: 100 }), [])
+  const universities = universitiesData?.data ?? []
+
+  const { data: collegesData } = useAsync(
+    () => listColleges({ parentId: value.universityId || undefined, limit: 100 }),
+    [value.universityId],
+  )
+  const colleges = value.universityId ? (collegesData?.data ?? []) : []
+
+  const { data: specializationsData } = useAsync(
+    () => listSpecializations({ parentId: value.collegeId || undefined, limit: 100 }),
+    [value.collegeId],
+  )
+  const specializations = value.collegeId ? (specializationsData?.data ?? []) : []
+
   return (
     <Card
       variant="card"
       className="flex w-full shrink-0 flex-col justify-between gap-4 p-4 lg:flex-row lg:items-center"
     >
       <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 lg:w-auto">
-        <FilterSelect label="تجميع بحسب: الكلية" options={['الكلية']} value="الكلية" width={180} onChange={() => {}} />
+        <FilterSelect
+          label="الجامعة"
+          options={universities.map((u) => ({ value: u.id, label: u.name }))}
+          width={170}
+          value={value.universityId}
+          onChange={(v) => onChange({ universityId: v, collegeId: '', specializationId: '' })}
+        />
+        <FilterSelect
+          label="الكلية"
+          options={colleges.map((c) => ({ value: c.id, label: c.name }))}
+          width={170}
+          value={value.collegeId}
+          onChange={(v) => onChange({ collegeId: v, specializationId: '' })}
+        />
+        <FilterSelect
+          label="التخصص"
+          options={specializations.map((s) => ({ value: s.id, label: s.name }))}
+          width={170}
+          value={value.specializationId}
+          onChange={(v) => onChange({ specializationId: v })}
+        />
         <DateField label="من" width={150} value={value.from} onChange={(v) => onChange({ from: v })} />
         <DateField label="إلى" width={150} value={value.to} onChange={(v) => onChange({ to: v })} />
         <Checkbox

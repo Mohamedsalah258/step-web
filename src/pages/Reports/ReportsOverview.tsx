@@ -68,7 +68,7 @@ export default function ReportsOverview() {
   const [filters, setFilters] = useReportFilters()
   const { data, loading, error, reload } = useAsync(
     () => getRevenueReport(filters),
-    [filters.from, filters.to, filters.compare],
+    [filters.from, filters.to, filters.compare, filters.universityId, filters.collegeId, filters.specializationId],
   )
 
   const stats: Stat[] = data

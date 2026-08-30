@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import {
   Modal,
   ModalButton,
@@ -17,6 +17,8 @@ type AcademicOutletContext = { onDataChanged: () => void }
 /** فيجما frame: v3-add-college-modal (node 2003:3198) — modal-card 2003:3349 */
 export default function AddCollegeModal() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const presetUniversityId = params.get('parentId') ?? undefined
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
   const { data, loading, error } = useAsync(() => listUniversities({ limit: 100 }), [])
   const universities = data?.data ?? []
@@ -27,8 +29,16 @@ export default function AddCollegeModal() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const selectedUniversity =
-    universities.find((u) => u.name === universityName) ?? universities[0]
+  /**
+   * لو اتفتحت الشاشة من داخل جامعة محددة (زرار "إضافة" من صفحة كلياتها)،
+   * الجامعة دي بتتقفل تلقائي — مفيش داعي تسأل المستخدم يختارها تاني وهو
+   * أصلًا اختارها بالتنقل. لو اتفتحت من "كل الكليات" (من غير سياق)، تفضل
+   * دروب داون حقيقي لازم تختار منه (مفيش افتراضي بيتحط بصمت).
+   */
+  const presetUniversity = presetUniversityId
+    ? universities.find((u) => u.id === presetUniversityId)
+    : undefined
+  const selectedUniversity = presetUniversity ?? universities.find((u) => u.name === universityName)
 
   const handleConfirm = async () => {
     if (!selectedUniversity) return
@@ -72,8 +82,9 @@ export default function AddCollegeModal() {
           <ModalSelect
             label={M.universityLabel}
             options={universities.map((u) => u.name)}
-            value={universityName || selectedUniversity?.name}
+            value={selectedUniversity?.name ?? ''}
             onChange={setUniversityName}
+            disabled={!!presetUniversity}
           />
           <ModalField
             label={M.nameLabel}
