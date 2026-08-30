@@ -11,7 +11,7 @@ export default function DeleteTermModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listTerms({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listTerms({ limit: 100 }), [])
   const term = data?.data.find((t) => t.id === id)
 
   const [submitting, setSubmitting] = useState(false)

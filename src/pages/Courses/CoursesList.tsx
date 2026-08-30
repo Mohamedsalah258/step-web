@@ -109,7 +109,7 @@ export default function CoursesList() {
   const debouncedSearch = useDebouncedValue(searchInput, 400)
   const tab = TABS_META[tabIndex]?.key ?? 'all'
 
-  const { data: collegesData } = useAsync(() => listColleges({ limit: 200 }), [])
+  const { data: collegesData } = useAsync(() => listColleges({ limit: 100 }), [])
   const colleges = collegesData?.data ?? []
   const collegeId = colleges.find((c) => c.name === collegeName)?.id
 

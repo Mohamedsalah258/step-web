@@ -11,7 +11,7 @@ export default function DeleteSpecializationModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listSpecializations({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listSpecializations({ limit: 100 }), [])
   const specialization = data?.data.find((s) => s.id === id)
 
   const [submitting, setSubmitting] = useState(false)

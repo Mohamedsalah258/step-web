@@ -11,7 +11,7 @@ export default function DeleteUniversityModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listUniversities({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listUniversities({ limit: 100 }), [])
   const university = data?.data.find((u) => u.id === id)
 
   const [submitting, setSubmitting] = useState(false)

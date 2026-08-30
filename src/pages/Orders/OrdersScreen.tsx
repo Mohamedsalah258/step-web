@@ -58,7 +58,7 @@ export function OrdersShell({
     [debouncedSearch, tab, date, courseId, page],
   )
 
-  const { data: coursesData } = useAsync(() => listCourses({ limit: 200 }), [])
+  const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
   const courses = coursesData?.data ?? []
 
   const tabs = useMemo(() => {

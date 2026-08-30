@@ -11,7 +11,7 @@ export default function DeleteStageModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listStages({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listStages({ limit: 100 }), [])
   const stage = data?.data.find((s) => s.id === id)
 
   const [submitting, setSubmitting] = useState(false)

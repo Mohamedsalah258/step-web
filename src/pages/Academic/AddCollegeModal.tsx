@@ -18,7 +18,7 @@ type AcademicOutletContext = { onDataChanged: () => void }
 export default function AddCollegeModal() {
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listUniversities({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listUniversities({ limit: 100 }), [])
   const universities = data?.data ?? []
 
   const [universityName, setUniversityName] = useState('')

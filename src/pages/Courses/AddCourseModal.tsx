@@ -31,33 +31,33 @@ export default function AddCourseModal() {
   const [stageName, setStageName] = useState('')
   const [termName, setTermName] = useState('')
 
-  const { data: unisData } = useAsync(() => listUniversities({ limit: 200 }), [])
+  const { data: unisData } = useAsync(() => listUniversities({ limit: 100 }), [])
   const universities = unisData?.data ?? []
   const university = universities.find((u) => u.name === universityName)
 
   const { data: collegesData } = useAsync(
-    () => listColleges({ parentId: university?.id, limit: 200 }),
+    () => listColleges({ parentId: university?.id, limit: 100 }),
     [university?.id],
   )
   const colleges = university ? (collegesData?.data ?? []) : []
   const college = colleges.find((c) => c.name === collegeName)
 
   const { data: specsData } = useAsync(
-    () => listSpecializations({ parentId: college?.id, limit: 200 }),
+    () => listSpecializations({ parentId: college?.id, limit: 100 }),
     [college?.id],
   )
   const specializations = college ? (specsData?.data ?? []) : []
   const specialization = specializations.find((s) => s.name === specializationName)
 
   const { data: stagesData } = useAsync(
-    () => listStages({ parentId: specialization?.id, limit: 200 }),
+    () => listStages({ parentId: specialization?.id, limit: 100 }),
     [specialization?.id],
   )
   const stages = specialization ? (stagesData?.data ?? []) : []
   const stage = stages.find((s) => s.name === stageName)
 
   const { data: termsData } = useAsync(
-    () => listTerms({ parentId: stage?.id, limit: 200 }),
+    () => listTerms({ parentId: stage?.id, limit: 100 }),
     [stage?.id],
   )
   const terms = stage ? (termsData?.data ?? []) : []

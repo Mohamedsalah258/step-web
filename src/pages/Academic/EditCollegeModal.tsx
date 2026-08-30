@@ -17,7 +17,7 @@ export default function EditCollegeModal() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listColleges({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listColleges({ limit: 100 }), [])
   const college = data?.data.find((c) => c.id === id)
 
   const [name, setName] = useState('')

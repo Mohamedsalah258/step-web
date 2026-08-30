@@ -80,15 +80,15 @@ export default function Notifications() {
   const [sendError, setSendError] = useState<string | null>(null)
   const [sendSuccess, setSendSuccess] = useState(false)
 
-  const { data: coursesData } = useAsync(() => listCourses({ limit: 200 }), [])
+  const { data: coursesData } = useAsync(() => listCourses({ limit: 100 }), [])
   const courses = coursesData?.data ?? []
   const course = courseName === ALL ? undefined : courses.find((c) => c.name === courseName)
 
-  const { data: stagesData } = useAsync(() => listStages({ limit: 200 }), [])
+  const { data: stagesData } = useAsync(() => listStages({ limit: 100 }), [])
   const stages = stagesData?.data ?? []
   const stage = stageName === ALL ? undefined : stages.find((s) => s.name === stageName)
 
-  const { data: termsData } = useAsync(() => listTerms({ limit: 200 }), [])
+  const { data: termsData } = useAsync(() => listTerms({ limit: 100 }), [])
   const terms = termsData?.data ?? []
   const term = termName === ALL ? undefined : terms.find((t) => t.name === termName)
 

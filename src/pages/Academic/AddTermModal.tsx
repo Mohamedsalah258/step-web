@@ -18,7 +18,7 @@ type AcademicOutletContext = { onDataChanged: () => void }
 export default function AddTermModal() {
   const navigate = useNavigate()
   const { onDataChanged } = useOutletContext<AcademicOutletContext>()
-  const { data, loading, error } = useAsync(() => listStages({ limit: 200 }), [])
+  const { data, loading, error } = useAsync(() => listStages({ limit: 100 }), [])
   const stages = data?.data ?? []
 
   const [stageName, setStageName] = useState('')
