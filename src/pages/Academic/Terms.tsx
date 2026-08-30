@@ -99,12 +99,17 @@ export default function Terms() {
     () => listTerms({ parentId: stageId }),
     [stageId, refreshKey],
   )
+  const termIds = (data?.data ?? []).map((t) => t.id)
   const {
     data: coursesData,
     loading: coursesLoading,
     error: coursesError,
     reload: reloadCourses,
-  } = useAsync(() => listCourses({ limit: 10 }), [refreshKey])
+  } = useAsync(async () => {
+    if (termIds.length === 0) return { data: [] as ApiCourseListItem[] }
+    const results = await Promise.all(termIds.map((termId) => listCourses({ termId, limit: 50 })))
+    return { data: results.flatMap((r) => r.data) }
+  }, [termIds.join(','), refreshKey])
   const stagesBackTo = academicPath('/academic/stages', {
     parentId: specializationId,
     collegeId,
@@ -130,7 +135,15 @@ export default function Terms() {
           >
             العودة للمراحل
           </ButtonLink>
-          <ButtonLink to="/academic/terms/add" icon={Plus}>
+          <ButtonLink
+            to={academicPath('/academic/terms/add', {
+              parentId: stageId,
+              specializationId,
+              collegeId,
+              universityId,
+            })}
+            icon={Plus}
+          >
             إضافة ترم
           </ButtonLink>
           <ButtonLink

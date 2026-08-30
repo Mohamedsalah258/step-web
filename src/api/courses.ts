@@ -52,6 +52,7 @@ export type ApiContentItem = {
 type ListCoursesParams = {
   q?: string
   collegeId?: string
+  termId?: string
   tab?: 'all' | 'active' | 'inactive'
   page?: number
   limit?: number
