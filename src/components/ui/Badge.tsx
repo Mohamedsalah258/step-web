@@ -51,6 +51,12 @@ export const STATUS_TONE: Record<string, BadgeTone> = {
   "معطّل": 'danger',
   منتهي: 'neutral',
   مؤرشف: 'neutral',
+  // حالات تذاكر الدعم
+  مفتوحة: 'warning',
+  'قيد المعالجة': 'brand',
+  'تم الحل': 'success',
+  مغلقة: 'neutral',
+  ملغاة: 'danger',
 }
 
 export function StatusBadge({ status }: { status: string }) {

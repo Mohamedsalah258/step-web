@@ -11,6 +11,7 @@ import {
   FileText,
   Wrench,
   Settings2,
+  LifeBuoy,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -61,6 +62,12 @@ export const NAV_ITEMS: NavItem[] = [
     to: '/notifications',
     icon: BellDot,
     match: ['/notifications'],
+  },
+  {
+    label: 'تذاكر الدعم',
+    to: '/tickets',
+    icon: LifeBuoy,
+    match: ['/tickets'],
   },
   { label: 'البنرات', to: '/banners', icon: ImageIcon, match: ['/banners'] },
   {

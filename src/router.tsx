@@ -83,6 +83,10 @@ import ReportStudents from '@/pages/Reports/ReportStudents'
 import ReportOrders from '@/pages/Reports/ReportOrders'
 import ReportDevices from '@/pages/Reports/ReportDevices'
 
+/* تذاكر الدعم */
+import Tickets from '@/pages/Support/Tickets'
+import TicketDetail from '@/pages/Support/TicketDetail'
+
 /* المحتوى والإعدادات */
 import Notifications from '@/pages/Content/Notifications'
 import Banners from '@/pages/Content/Banners'
@@ -296,6 +300,10 @@ export const router = createBrowserRouter([
       { path: 'reports/students', element: <ReportStudents /> },
       { path: 'reports/orders', element: <ReportOrders /> },
       { path: 'reports/devices', element: <ReportDevices /> },
+
+      /* ── تذاكر الدعم ── */
+      { path: 'tickets', element: <Tickets /> },
+      { path: 'tickets/:id', element: <TicketDetail /> },
 
       /* ── المحتوى والإعدادات ── */
       { path: 'notifications', element: <Notifications /> },
