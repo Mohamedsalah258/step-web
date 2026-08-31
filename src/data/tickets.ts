@@ -72,3 +72,16 @@ export const TICKET_DETAIL_SECTIONS = {
   ticket: 'بيانات التذكرة',
   conversation: 'المحادثة',
 } as const
+
+/** رسايل "تواصل مع الدعم" من زوار مش مسجلين — معروضة في نفس جدول التذاكر
+ * (GET /tickets بيدمجهم) بس بتصنيف بصري مختلف، وبدون صفحة تفاصيل. */
+export const GUEST_CONTACT = {
+  badge: 'زائر',
+  emptyField: '—',
+  replyAction: 'الرد بالإيميل',
+  replyModalTitle: 'الرد على رسالة الزائر',
+  replyPlaceholder: 'اكتب ردك — هيتبعت كإيميل مباشر لصاحب الرسالة...',
+  cancel: 'إلغاء',
+  send: 'إرسال الرد',
+  sending: '...جاري الإرسال',
+} as const

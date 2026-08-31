@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, Trash2 } from 'lucide-react'
+import { Eye, Mail, Trash2 } from 'lucide-react'
 import { IconButton } from '@/components/ui/Button'
 import { Badge, StatusBadge } from '@/components/ui/Badge'
 import { RowActions, Truncate, type Column } from '@/components/ui/Table'
@@ -11,9 +11,10 @@ import {
   createTicketCategory,
   deactivateTicketCategory,
   listTicketCategories,
+  replyToGuestContact,
   type ApiTicketListItem,
 } from '@/api/tickets'
-import { CATEGORIES_MODAL, PRIORITY_AR, PRIORITY_TONE } from '@/data/tickets'
+import { CATEGORIES_MODAL, GUEST_CONTACT, PRIORITY_AR, PRIORITY_TONE } from '@/data/tickets'
 
 /*
  * أجزاء مشتركة بين شاشات تذاكر الدعم (مش صفحات — مفيش default export).
@@ -23,9 +24,12 @@ import { CATEGORIES_MODAL, PRIORITY_AR, PRIORITY_TONE } from '@/data/tickets'
 export function ticketColumns({
   page,
   limit,
+  onReplyGuest,
 }: {
   page: number
   limit: number
+  /** GUEST_CONTACT بس — بيفتح مودال الرد بدل ما يودّي لصفحة تفاصيل مش موجودة أصلًا للزوار */
+  onReplyGuest: (row: ApiTicketListItem) => void
 }): Column<ApiTicketListItem>[] {
   return [
     {
@@ -38,7 +42,12 @@ export function ticketColumns({
       key: 'student',
       header: 'الطالب',
       width: 180,
-      render: (r) => <span className="font-semibold text-ink">{r.student.name}</span>,
+      render: (r) => (
+        <div className="flex flex-col gap-1">
+          <span className="font-semibold text-ink">{r.student.name}</span>
+          {r.kind === 'GUEST_CONTACT' ? <Badge tone="neutral">{GUEST_CONTACT.badge}</Badge> : null}
+        </div>
+      ),
     },
     {
       key: 'subject',
@@ -50,13 +59,18 @@ export function ticketColumns({
       key: 'category',
       header: 'التصنيف',
       width: 140,
-      render: (r) => <span className="text-ink">{r.category ?? '—'}</span>,
+      render: (r) => <span className="text-ink">{r.category ?? GUEST_CONTACT.emptyField}</span>,
     },
     {
       key: 'priority',
       header: 'الأولوية',
       width: 100,
-      render: (r) => <Badge tone={PRIORITY_TONE[r.priority]}>{PRIORITY_AR[r.priority]}</Badge>,
+      render: (r) =>
+        r.priority ? (
+          <Badge tone={PRIORITY_TONE[r.priority]}>{PRIORITY_AR[r.priority]}</Badge>
+        ) : (
+          <span className="text-muted">{GUEST_CONTACT.emptyField}</span>
+        ),
     },
     {
       key: 'status',
@@ -77,7 +91,11 @@ export function ticketColumns({
       align: 'center',
       render: (r) => (
         <RowActions>
-          <IconButton icon={Eye} label="عرض التذكرة" tone="brand" to={`/tickets/${r.id}`} />
+          {r.kind === 'GUEST_CONTACT' ? (
+            <IconButton icon={Mail} label={GUEST_CONTACT.replyAction} tone="brand" onClick={() => onReplyGuest(r)} />
+          ) : (
+            <IconButton icon={Eye} label="عرض التذكرة" tone="brand" to={`/tickets/${r.id}`} />
+          )}
         </RowActions>
       ),
     },
@@ -173,6 +191,69 @@ export function TicketCategoriesModal({
           {submitError ? <p className="text-sm font-bold text-danger">{submitError}</p> : null}
         </div>
       )}
+    </Modal>
+  )
+}
+
+/** مودال الرد على رسالة زائر (GUEST_CONTACT) — بيتبعت كإيميل حقيقي على طول،
+ * عكس رد التذكرة العادي اللي بيضيف رسالة محادثة داخل التطبيق. */
+export function GuestContactReplyModal({
+  row,
+  onClose,
+  onSent,
+}: {
+  row: ApiTicketListItem
+  onClose: () => void
+  onSent: () => void
+}) {
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSend = async () => {
+    if (!message.trim()) return
+    setSending(true)
+    setError(null)
+    try {
+      await replyToGuestContact(row.id, message.trim())
+      onSent()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <Modal title={GUEST_CONTACT.replyModalTitle} width={520} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <div className="rounded-ctl bg-surface p-3">
+          <p className="text-xs font-bold text-muted">
+            {row.student.name} · {row.student.email}
+          </p>
+          <p className="mt-1.5 whitespace-pre-wrap text-sm text-ink">{row.message ?? row.subject}</p>
+        </div>
+
+        <textarea
+          rows={4}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder={GUEST_CONTACT.replyPlaceholder}
+          className="w-full resize-y rounded-ctl border border-line bg-white p-3 text-right text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-muted focus:border-brand"
+        />
+
+        {error ? <p className="text-sm font-bold text-danger">{error}</p> : null}
+
+        <div className="flex items-center gap-2">
+          <ModalButton variant="cancel" onClick={onClose}>
+            {GUEST_CONTACT.cancel}
+          </ModalButton>
+          <ModalButton onClick={handleSend} disabled={sending || !message.trim()}>
+            {sending ? GUEST_CONTACT.sending : GUEST_CONTACT.send}
+          </ModalButton>
+        </div>
+      </div>
     </Modal>
   )
 }

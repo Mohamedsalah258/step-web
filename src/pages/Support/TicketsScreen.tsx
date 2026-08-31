@@ -10,9 +10,15 @@ import { Pagination } from '@/components/ui/Misc'
 import { EmptyState, ErrorState, TableSkeleton } from '@/components/ui/States'
 import { useAsync } from '@/lib/useAsync'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
-import { listTickets, listTicketCategories, type TicketPriority, type TicketsTab } from '@/api/tickets'
+import {
+  listTickets,
+  listTicketCategories,
+  type ApiTicketListItem,
+  type TicketPriority,
+  type TicketsTab,
+} from '@/api/tickets'
 import { PRIORITY_AR, TICKET_FILTERS, TICKETS_PAGE_TITLE } from '@/data/tickets'
-import { ticketColumns, TicketCategoriesModal } from './tickets-parts'
+import { ticketColumns, GuestContactReplyModal, TicketCategoriesModal } from './tickets-parts'
 
 const PAGE_SIZE = 10
 
@@ -35,6 +41,7 @@ export function TicketsShell() {
   const [categoryId, setCategoryId] = useState('')
   const [page, setPage] = useState(1)
   const [manageOpen, setManageOpen] = useState(false)
+  const [replyRow, setReplyRow] = useState<ApiTicketListItem | null>(null)
 
   const debouncedSearch = useDebouncedValue(searchInput, 400)
   const tab = TAB_META[tabIndex]?.key ?? 'all'
@@ -135,7 +142,11 @@ export function TicketsShell() {
         ) : (
           <>
             <DataTable
-              columns={ticketColumns({ page: data?.meta?.page ?? 1, limit: PAGE_SIZE })}
+              columns={ticketColumns({
+                page: data?.meta?.page ?? 1,
+                limit: PAGE_SIZE,
+                onReplyGuest: setReplyRow,
+              })}
               rows={data?.data ?? []}
               rowKey={(r) => r.id}
               className="min-w-[1000px]"
@@ -164,6 +175,10 @@ export function TicketsShell() {
             reloadCategories()
           }}
         />
+      ) : null}
+
+      {replyRow ? (
+        <GuestContactReplyModal row={replyRow} onClose={() => setReplyRow(null)} onSent={reload} />
       ) : null}
     </Page>
   )

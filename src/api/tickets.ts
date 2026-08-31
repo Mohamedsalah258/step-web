@@ -6,14 +6,23 @@ export type TicketStatusRaw = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED' | '
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 export type TicketsTab = 'all' | 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
 
+/** STUDENT_TICKET = تذكرة طالب مسجل دخول (المحادثة الكاملة في /tickets/:id).
+ * GUEST_CONTACT = رسالة "تواصل مع الدعم" من زائر مش مسجّل (شاشة اللوجين) —
+ * جدول منفصل تمامًا في الباك اند، مفيهوش تصنيف/أولوية/محادثة داخلية، والرد
+ * عليها بيحصل بإيميل عادي مش بفتح صفحة تفاصيل. */
+export type TicketKind = 'STUDENT_TICKET' | 'GUEST_CONTACT'
+
 export type ApiTicketListItem = {
+  kind: TicketKind
   id: string
   subject: string
-  student: { id: string; name: string }
+  /** النص الكامل لرسالة الزائر — GUEST_CONTACT بس، subject فوق نسخة مقصوصة منه */
+  message?: string
+  student: { id: string | null; name: string; email?: string }
   category: string | null
-  priority: TicketPriority
+  priority: TicketPriority | null
   status: string
-  statusRaw: TicketStatusRaw
+  statusRaw: TicketStatusRaw | null
   assignedAdminName: string | null
   createdAt: string
   updatedAt: string
@@ -71,6 +80,11 @@ export const getTicketDetail = (id: string) => api.get<ApiTicketDetail>(`/ticket
 
 export const replyToTicket = (id: string, message: string, isInternal?: boolean) =>
   api.post<{ ok: true; id: string }>(`/tickets/${id}/messages`, { message, isInternal })
+
+/** رد على رسالة "تواصل مع الدعم" من زائر (صف GUEST_CONTACT) — بيتبعت
+ * كإيميل حقيقي لصاحب الرسالة، عكس replyToTicket اللي بيضيف رسالة محادثة. */
+export const replyToGuestContact = (id: string, message: string) =>
+  api.post<{ ok: true }>(`/contact-support/${id}/reply`, { message })
 
 export const updateTicketStatus = (id: string, status: TicketStatusRaw, resolution?: string) =>
   api.patch<{ ok: true }>(`/tickets/${id}/status`, { status, resolution })

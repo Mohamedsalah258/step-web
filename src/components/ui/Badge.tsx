@@ -57,6 +57,9 @@ export const STATUS_TONE: Record<string, BadgeTone> = {
   'تم الحل': 'success',
   مغلقة: 'neutral',
   ملغاة: 'danger',
+  // رسالة تواصل من زائر (تذاكر الدعم، صف مدموج من contact-support)
+  'رسالة تواصل': 'brand',
+  'تم الرد': 'success',
   // حالات قفل/فتح تعديل البروفايل
   مقفول: 'warning',
   مفتوح: 'success',
