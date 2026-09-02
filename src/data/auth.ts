@@ -21,11 +21,16 @@ export const LOGIN = {
   note: 'هذه اللوحة مخصّصة لمدير النظام فقط',
 } as const
 
-/** policy-links — node 47:2 (RTL: أول عنصر يظهر يمين) */
+/**
+ * policy-links — node 47:2 (RTL: أول عنصر يظهر يمين).
+ * ⚠️ لازم تشاور لصفحات عامة تحت /legal (خارج RequireAuth) مش /pages/*
+ * (اللي محتاجة تسجيل دخول) — زائر بيدوس عليها وهو لسه في شاشة اللوجين.
+ */
 export const LOGIN_POLICIES: Array<{ label: string; to: string }> = [
-  { label: 'الشروط والأحكام', to: '/pages/terms' },
-  { label: 'سياسة الاسترجاع', to: '/pages/refund' },
-  { label: 'الخصوصية', to: '/pages/privacy' },
+  { label: 'الشروط والأحكام', to: '/legal/terms' },
+  { label: 'سياسة الاسترجاع', to: '/legal/refund' },
+  { label: 'الخصوصية', to: '/legal/privacy' },
+  { label: 'حذف الحساب', to: '/legal/deletion' },
 ]
 
 /** hero-branding — node 26:26 */

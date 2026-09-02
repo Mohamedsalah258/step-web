@@ -1,9 +1,9 @@
 import { api } from './client'
 
-export type PolicySlug = 'privacy' | 'refund' | 'terms'
+export type PolicySlug = 'privacy' | 'refund' | 'terms' | 'deletion'
 
 export type ApiPolicy = {
-  type: 'PRIVACY' | 'REFUND' | 'TERMS'
+  type: 'PRIVACY' | 'REFUND' | 'TERMS' | 'DELETION'
   heading: string
   paragraphs: string[]
   content: string

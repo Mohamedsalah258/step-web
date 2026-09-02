@@ -4,6 +4,7 @@ import { RequireAuth } from '@/components/layout/RequireAuth'
 
 import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Auth/Login'
+import PolicyView from '@/pages/Public/PolicyView'
 
 /* طلبات الشراء */
 import OrdersList from '@/pages/Orders/OrdersList'
@@ -94,6 +95,7 @@ import EditBannerModal from '@/pages/Content/EditBannerModal'
 import PagesPolicies from '@/pages/Content/PagesPolicies'
 import PolicyRefund from '@/pages/Content/PolicyRefund'
 import PolicyTerms from '@/pages/Content/PolicyTerms'
+import PolicyDeletion from '@/pages/Content/PolicyDeletion'
 import Maintenance from '@/pages/Content/Maintenance'
 import Settings from '@/pages/Content/Settings'
 
@@ -109,6 +111,9 @@ import StateError from '@/pages/States/StateError'
  */
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
+  /* صفحات قانونية عامة — خارج RequireAuth عمدًا، زائر مش مسجّل دخول يقدر يفتحها
+     مباشرة من شاشة اللوجين (شوف LOGIN_POLICIES في data/auth.ts) */
+  { path: '/legal/:slug', element: <PolicyView /> },
 
   {
     path: '/',
@@ -315,6 +320,7 @@ export const router = createBrowserRouter([
       { path: 'pages', element: <PagesPolicies /> },
       { path: 'pages/refund', element: <PolicyRefund /> },
       { path: 'pages/terms', element: <PolicyTerms /> },
+      { path: 'pages/deletion', element: <PolicyDeletion /> },
       { path: 'maintenance', element: <Maintenance /> },
       { path: 'settings', element: <Settings /> },
 

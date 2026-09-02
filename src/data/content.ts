@@ -62,6 +62,7 @@ export const POLICY_TABS = [
   { label: 'سياسة الخصوصية', to: '/pages' },
   { label: 'سياسة الاسترجاع والاستبدال', to: '/pages/refund' },
   { label: 'الشروط والأحكام', to: '/pages/terms' },
+  { label: 'سياسة حذف الحساب', to: '/pages/deletion' },
 ]
 
 /** ⚠️ RTL: أول زر في المصفوفة يظهر على اليمين */
