@@ -70,10 +70,12 @@ export default function EditMethodModal() {
       await updatePaymentMethod(id, {
         name,
         type: LABEL_TO_TYPE[type],
-        accountNumber: accountNumber || undefined,
-        bankName: bankName || undefined,
-        holderName: holderName || undefined,
-        instructions: instructions || undefined,
+        // ⚠️ الحقل الفاضي هنا لازم يتبعت صراحةً "" مش يتشال بـ undefined —
+        // ده الفرق بين "امسح القيمة دي" و"متلمسهاش" (شوف payments.service.ts:update)
+        accountNumber,
+        bankName,
+        holderName,
+        instructions,
         isActive,
       })
       onDataChanged()
