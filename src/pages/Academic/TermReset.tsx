@@ -69,6 +69,7 @@ export default function TermReset() {
   const { data: collegesData } = useAsync(
     () => listColleges({ parentId: university?.id, limit: 100 }),
     [university?.id],
+    true,
   )
   const colleges = university ? (collegesData?.data ?? []) : []
   const college = colleges.find((c) => c.name === collegeName)
@@ -76,6 +77,7 @@ export default function TermReset() {
   const { data: specsData } = useAsync(
     () => listSpecializations({ parentId: college?.id, limit: 100 }),
     [college?.id],
+    true,
   )
   const specializations = college ? (specsData?.data ?? []) : []
   const specialization = specializations.find((s) => s.name === specializationName)
@@ -83,6 +85,7 @@ export default function TermReset() {
   const { data: stagesData } = useAsync(
     () => listStages({ parentId: specialization?.id, limit: 100 }),
     [specialization?.id],
+    true,
   )
   const stages = specialization ? (stagesData?.data ?? []) : []
   const stage = stages.find((s) => s.name === stageName)
@@ -90,6 +93,7 @@ export default function TermReset() {
   const { data: termsData } = useAsync(
     () => listTerms({ parentId: stage?.id, limit: 100 }),
     [stage?.id],
+    true,
   )
   const terms = stage ? (termsData?.data ?? []) : []
   const term = terms.find((t) => t.name === termName)

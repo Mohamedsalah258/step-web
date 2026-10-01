@@ -97,6 +97,7 @@ export default function Notifications() {
   const { data: collegesData } = useAsync(
     () => listColleges({ parentId: university?.id, limit: 100 }),
     [university?.id],
+    true,
   )
   const colleges = university ? (collegesData?.data ?? []) : []
   const college = collegeName === ALL ? undefined : colleges.find((c) => c.name === collegeName)
@@ -104,6 +105,7 @@ export default function Notifications() {
   const { data: specializationsData } = useAsync(
     () => listSpecializations({ parentId: college?.id, limit: 100 }),
     [college?.id],
+    true,
   )
   const specializations = college ? (specializationsData?.data ?? []) : []
   const specialization =
@@ -112,6 +114,7 @@ export default function Notifications() {
   const { data: stagesData } = useAsync(
     () => listStages({ parentId: specialization?.id, limit: 100 }),
     [specialization?.id],
+    true,
   )
   const stages = specialization ? (stagesData?.data ?? []) : []
   const stage = stageName === ALL ? undefined : stages.find((s) => s.name === stageName)
@@ -119,6 +122,7 @@ export default function Notifications() {
   const { data: termsData } = useAsync(
     () => listTerms({ parentId: stage?.id, limit: 100 }),
     [stage?.id],
+    true,
   )
   const terms = stage ? (termsData?.data ?? []) : []
   const term = termName === ALL ? undefined : terms.find((t) => t.name === termName)
@@ -126,6 +130,7 @@ export default function Notifications() {
   const { data: coursesData } = useAsync(
     () => listCourses({ collegeId: college?.id, limit: 100 }),
     [college?.id],
+    true,
   )
   const courses = college ? (coursesData?.data ?? []) : []
   const course = courseName === ALL ? undefined : courses.find((c) => c.name === courseName)

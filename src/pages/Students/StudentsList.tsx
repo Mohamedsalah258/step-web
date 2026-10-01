@@ -53,12 +53,14 @@ export function StudentsListShell() {
   const { data: collegesData } = useAsync(
     () => listColleges({ parentId: universityId || undefined, limit: 100 }),
     [universityId],
+    true,
   )
   const colleges = universityId ? (collegesData?.data ?? []) : []
 
   const { data: specializationsData } = useAsync(
     () => listSpecializations({ parentId: collegeId || undefined, limit: 100 }),
     [collegeId],
+    true,
   )
   const specializations = collegeId ? (specializationsData?.data ?? []) : []
 

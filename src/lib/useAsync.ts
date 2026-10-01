@@ -7,8 +7,18 @@ import { ApiError } from '@/api/client'
  *
  * `deps` بتشتغل زي useEffect: أي تغيير فيها (بحث جديد، صفحة جديدة...) بيعيد
  * الجلب تلقائي.
+ *
+ * `resetOnReload` (افتراضي false): امسح `data` القديمة فورًا وقت إعادة
+ * الجلب بدل ما تفضل ظاهرة لحد ما الطلب الجديد يخلص. استخدمه بس لما الداتا
+ * القديمة ممكن تبقى **غلط** مش بس قديمة — زي دروب داون متتابع (كليات
+ * جامعة A تتعرض وهمًا وهو فعليًا محدد جامعة B دلوقتي). سيبه false لقوائم/
+ * باجينيشن عادية عشان تتفادى فلاش فاضي كل تغيير صفحة/بحث.
  */
-export function useAsync<T>(fetcher: () => Promise<T>, deps: unknown[]) {
+export function useAsync<T>(
+  fetcher: () => Promise<T>,
+  deps: unknown[],
+  resetOnReload = false,
+) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +29,12 @@ export function useAsync<T>(fetcher: () => Promise<T>, deps: unknown[]) {
     const id = ++requestId.current
     setLoading(true)
     setError(null)
+    // افتراضيًا بنسيب الداتا القديمة زي ما هي أثناء إعادة الجلب (stale-
+    // while-revalidate) عشان صفحات القوائم/الباجينيشن ميحصلهاش فلاش فاضي.
+    // بس دروب داون متتابع (جامعة → كلية → تخصص...) ده سلوك غلط فعليًا —
+    // بيورّي خيارات الأب القديم لحد ما الطلب الجديد يخلص، وده ممكن يتفسّر
+    // غلط إن "الفلتر مش شغال" (شوف AddCourseModal/EditCourseModal).
+    if (resetOnReload) setData(null)
     fetcher()
       .then((result) => {
         if (id === requestId.current) setData(result)

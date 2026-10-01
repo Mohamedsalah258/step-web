@@ -74,12 +74,14 @@ export function ReportFilters({
   const { data: collegesData } = useAsync(
     () => listColleges({ parentId: value.universityId || undefined, limit: 100 }),
     [value.universityId],
+    true,
   )
   const colleges = value.universityId ? (collegesData?.data ?? []) : []
 
   const { data: specializationsData } = useAsync(
     () => listSpecializations({ parentId: value.collegeId || undefined, limit: 100 }),
     [value.collegeId],
+    true,
   )
   const specializations = value.collegeId ? (specializationsData?.data ?? []) : []
 
