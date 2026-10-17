@@ -12,6 +12,7 @@ import { uploadFile, uploadUrl } from '@/api/uploads'
 import { getProfileLockState, toggleProfileLock } from '@/api/profile-lock'
 import { updateAdmin } from '@/lib/auth-store'
 import { PASSWORD_CARD, PROFILE_CARD, PROFILE_LOCK_PANEL, SETTINGS_PAGE_TITLE } from '@/data/content'
+import { PaymentVisibilityCard } from './content-parts'
 
 /** فيجما frame: v3-settings (node 7:2653) */
 export default function Settings() {
@@ -274,6 +275,8 @@ export default function Settings() {
           </>
         )}
       </Card>
+
+      <PaymentVisibilityCard />
 
       {confirmingLock ? (
         <ConfirmDeleteModal

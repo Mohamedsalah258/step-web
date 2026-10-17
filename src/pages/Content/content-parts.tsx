@@ -3,11 +3,19 @@ import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { TextArea, TextField } from '@/components/ui/Field'
+import { TextArea, TextField, ToggleRow } from '@/components/ui/Field'
+import { ConfirmDeleteModal } from '@/components/ui/Modal'
+import { CardSkeleton, ErrorState } from '@/components/ui/States'
+import { useAsync } from '@/lib/useAsync'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import type { ApiPolicy } from '@/api/policies'
-import { POLICY_TABS, POLICY_TOOLBAR } from '@/data/content'
+import {
+  getPaymentVisibility,
+  setPaymentVisibility,
+  type AppPlatform,
+} from '@/api/payment-visibility'
+import { PAYMENT_VISIBILITY_PANEL, POLICY_TABS, POLICY_TOOLBAR } from '@/data/content'
 
 /**
  * هيدر كارت بأيقونة — فيجما node 7:2034 / 7:2060:
@@ -153,5 +161,101 @@ export function PolicyEditor({
       </div>
       {error ? <p className="text-sm font-bold text-danger">{error}</p> : null}
     </Card>
+  )
+}
+
+const APP_PLATFORMS: AppPlatform[] = ['ios', 'android']
+
+/**
+ * كارت إخفاء الدفع من تطبيق الطالب (صفحة الإعدادات) — سويتش لكل منصة
+ * لوحدها. إظهار الدفع على iOS هو الخطوة الخطرة الوحيدة (مراجعة Apple)،
+ * فهي بس اللي محتاجة تأكيد.
+ */
+export function PaymentVisibilityCard() {
+  const { data: state, loading, error, reload } = useAsync(() => getPaymentVisibility(), [])
+  const [toggling, setToggling] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [confirmingShowIos, setConfirmingShowIos] = useState(false)
+  const p = PAYMENT_VISIBILITY_PANEL
+
+  const performSet = async (platform: AppPlatform, hidden: boolean) => {
+    setToggling(true)
+    setActionError(null)
+    try {
+      await setPaymentVisibility(platform, hidden)
+      reload()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
+    } finally {
+      setToggling(false)
+      setConfirmingShowIos(false)
+    }
+  }
+
+  /** [hidden] هي القيمة اللي السويتش اتحرك لها — بتتبعت كده بالظبط للباك اند */
+  const handleChange = (platform: AppPlatform, hidden: boolean) => {
+    if (platform === 'ios' && !hidden) {
+      setConfirmingShowIos(true)
+      return
+    }
+    performSet(platform, hidden)
+  }
+
+  return (
+    <>
+      <Card className="flex w-full shrink-0 flex-col gap-6 p-8">
+        <div className="flex flex-col gap-2 text-right">
+          <h2 className="text-xl font-extrabold text-ink">{p.title}</h2>
+          <p className="text-base text-muted">{p.subtitle}</p>
+        </div>
+
+        {loading && !state ? (
+          <CardSkeleton />
+        ) : error || !state ? (
+          <ErrorState description={error ?? p.loadError} onRetry={reload} />
+        ) : (
+          <>
+            {APP_PLATFORMS.map((platform) => {
+              const hidden = platform === 'ios' ? state.hiddenOnIos : state.hiddenOnAndroid
+              const labels = p.platforms[platform]
+              return (
+                <ToggleRow
+                  key={platform}
+                  label={hidden ? labels.hiddenLabel : labels.shownLabel}
+                  hint={hidden ? p.hiddenHint : p.shownHint}
+                  on={hidden}
+                  onChange={(nextHidden) => handleChange(platform, nextHidden)}
+                  disabled={toggling}
+                />
+              )
+            })}
+
+            <p className="text-right text-sm text-muted">{p.appliesNote}</p>
+            <p className="text-right text-base leading-relaxed text-warning">{p.warning}</p>
+
+            {state.updatedByAdminName ? (
+              <p className="text-right text-sm text-muted">
+                {p.updatedByPrefix} {state.updatedByAdminName} —{' '}
+                {formatDateTime(state.updatedAt)}
+              </p>
+            ) : null}
+
+            {actionError ? <p className="text-sm font-bold text-danger">{actionError}</p> : null}
+          </>
+        )}
+      </Card>
+
+      {confirmingShowIos ? (
+        <ConfirmDeleteModal
+          title={p.confirmShowIos.title}
+          message={p.confirmShowIos.message}
+          confirmLabel={p.confirmShowIos.confirmLabel}
+          submittingLabel={p.confirmShowIos.submittingLabel}
+          submitting={toggling}
+          onClose={() => setConfirmingShowIos(false)}
+          onConfirm={() => performSet('ios', false)}
+        />
+      ) : null}
+    </>
   )
 }
