@@ -15,7 +15,13 @@ import {
   setPaymentVisibility,
   type AppPlatform,
 } from '@/api/payment-visibility'
-import { PAYMENT_VISIBILITY_PANEL, POLICY_TABS, POLICY_TOOLBAR } from '@/data/content'
+import { getEmulatorPolicy, setEmulatorPolicy } from '@/api/emulator-policy'
+import {
+  EMULATOR_POLICY_PANEL,
+  PAYMENT_VISIBILITY_PANEL,
+  POLICY_TABS,
+  POLICY_TOOLBAR,
+} from '@/data/content'
 
 /**
  * هيدر كارت بأيقونة — فيجما node 7:2034 / 7:2060:
@@ -254,6 +260,92 @@ export function PaymentVisibilityCard() {
           submitting={toggling}
           onClose={() => setConfirmingShowIos(false)}
           onConfirm={() => performSet('ios', false)}
+        />
+      ) : null}
+    </>
+  )
+}
+
+/**
+ * كارت تشغيل تطبيق الطالب على المحاكي (صفحة الإعدادات). السماح هو الخطوة
+ * الخطرة (المحتوى يتسجّل من غير حماية)، فهي بس اللي محتاجة تأكيد.
+ */
+export function EmulatorPolicyCard() {
+  const { data: state, loading, error, reload } = useAsync(() => getEmulatorPolicy(), [])
+  const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [confirmingAllow, setConfirmingAllow] = useState(false)
+  const p = EMULATOR_POLICY_PANEL
+
+  const performSet = async (allowEmulators: boolean) => {
+    setSaving(true)
+    setActionError(null)
+    try {
+      await setEmulatorPolicy(allowEmulators)
+      reload()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
+    } finally {
+      setSaving(false)
+      setConfirmingAllow(false)
+    }
+  }
+
+  /** [allow] هي القيمة اللي السويتش اتحرك لها */
+  const handleChange = (allow: boolean) => {
+    if (allow) {
+      setConfirmingAllow(true)
+      return
+    }
+    performSet(false)
+  }
+
+  return (
+    <>
+      <Card className="flex w-full shrink-0 flex-col gap-6 p-8">
+        <div className="flex flex-col gap-2 text-right">
+          <h2 className="text-xl font-extrabold text-ink">{p.title}</h2>
+          <p className="text-base text-muted">{p.subtitle}</p>
+        </div>
+
+        {loading && !state ? (
+          <CardSkeleton />
+        ) : error || !state ? (
+          <ErrorState description={error ?? p.loadError} onRetry={reload} />
+        ) : (
+          <>
+            <ToggleRow
+              label={state.allowEmulators ? p.allowedLabel : p.blockedLabel}
+              hint={state.allowEmulators ? p.allowedHint : p.blockedHint}
+              on={state.allowEmulators}
+              onChange={handleChange}
+              disabled={saving}
+            />
+
+            <p className="text-right text-sm text-muted">{p.appliesNote}</p>
+            <p className="text-right text-base leading-relaxed text-warning">{p.warning}</p>
+
+            {state.updatedByAdminName ? (
+              <p className="text-right text-sm text-muted">
+                {p.updatedByPrefix} {state.updatedByAdminName} —{' '}
+                {formatDateTime(state.updatedAt)}
+              </p>
+            ) : null}
+
+            {actionError ? <p className="text-sm font-bold text-danger">{actionError}</p> : null}
+          </>
+        )}
+      </Card>
+
+      {confirmingAllow ? (
+        <ConfirmDeleteModal
+          title={p.confirmAllow.title}
+          message={p.confirmAllow.message}
+          confirmLabel={p.confirmAllow.confirmLabel}
+          submittingLabel={p.confirmAllow.submittingLabel}
+          submitting={saving}
+          onClose={() => setConfirmingAllow(false)}
+          onConfirm={() => performSet(true)}
         />
       ) : null}
     </>
